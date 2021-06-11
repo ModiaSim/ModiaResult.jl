@@ -1,0 +1,651 @@
+# License for this file: MIT (expat)
+# Copyright 2020, DLR Institute of System Dynamics and Control
+# Developer: Martin Otter, DLR-SR
+#
+# This file is part of module ModiaResult
+#
+# Utility functions that are usually not directly called.
+
+using  Unitful
+import DataStructures
+import DataFrames
+import Measurements
+import MonteCarloMeasurements
+import Pkg
+isinstalled(pkg::String) = any(x -> x.name == pkg && x.is_direct_dep, values(Pkg.dependencies()))
+
+const AvailableModiaPlotPackages = ["GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot"]
+const ModiaPlotPackagesStack = String[]
+
+
+"""
+    activate(plotPackage::String)
+    
+Define the ModiaPlot package that shall be used by command `ModiaResult.@usingModiaPlot`.
+If a ModiaPlot package is already defined, save it on an internal stack
+(can be reactivated with `activatePreviousPlotPackage()`.
+
+# Example
+
+```julia
+import ModiaResult
+
+ModiaResult.activate("GLMakie")  # or "PyPlot" or "NoPlot"
+
+module MyTest
+    ModiaResult.@usingModiaPlot
+
+    t = range(0.0, stop=10.0, length=100)
+    result = Dict{String,Any}("time" => t, "phi" => sin.(t))
+
+    plot(result, "phi")  # use GLMakie for the rendering
+end
+```
+"""
+function activate(plotPackage::String)::Bool
+    success = true
+    plotPackageName = "ModiaPlot_" * plotPackage
+    if plotPackage in AvailableModiaPlotPackages
+        # Check that plotPackage is defined in current environment
+        if isinstalled(plotPackageName)
+            if haskey(ENV, "MODIA_PLOT")
+                push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
+            end
+            ENV["MODIA_PLOT"] = plotPackage
+        else
+            @warn "... activate(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
+            success = false
+        end
+    else
+        @warn "\n... activate(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
+        success = false
+    end
+    return success
+end
+
+
+
+"""
+    activatePreviousPlotPackage()
+    
+Pop the last saved ModiaPlot package from an internal stack
+and call `activate(<popped ModiaPlot package>)`.
+"""
+function activatePreviousPlotPackage()::Bool
+    if length(ModiaPlotPackagesStack) > 0
+        plotPackage = pop!(ModiaPlotPackagesStack)
+        success = activate(plotPackage)
+    else
+        @warn "activatePreviousPlotPackage(): Call ignored, because nothing saved."
+        success = false
+    end
+    return success
+end
+
+
+"""
+    activatedPlotPackage()
+    
+Return the name of the activated plot package as a string (e.g. return "GLMakie" or "PyPlot")
+or "", if no PlotPackage is defined
+"""
+activatedPlotPackage() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
+
+
+
+"""
+    @usingModiaPlot()
+    
+Execute `using XXX`, where `XXX` is the ModiaPlot package that was
+activated with `activate(plotPackage)`.
+"""
+macro usingModiaPlot()
+    if haskey(ENV, "MODIA_PLOT")
+        ModiaPlotPackage = ENV["MODIA_PLOT"]
+        if !(ModiaPlotPackage in AvailableModiaPlotPackages)
+            @warn "ENV[\"MODIA_PLOT\"] = \"$ModiaPlotPackage\" is not supported!."
+        else
+            ModiaPlotPackage = Symbol("ModiaPlot_" * ModiaPlotPackage)
+            expr = :(using $ModiaPlotPackage)
+            println("$expr")            
+            return esc( :(using $ModiaPlotPackage) )
+        end
+    end
+    
+    if isinstalled("ModiaPlot_NoPlot")
+        ModiaPlotPackage = Symbol("ModiaPlot_NoPlot")
+        expr = :(using $ModiaPlotPackage)
+        println("$expr")
+        return esc( expr )        
+    end
+    return nothing
+end
+
+
+
+
+
+const signalTypeToString = ["TimeSignal", "Continuous", "Clocked"]
+
+
+"""
+    info(result)
+    
+Return names, units, signal types, values sizes, and element types
+of the signals that are stored in result as DataFrame table.
+"""
+function info(result)
+    if isnothing(result)
+        @info "The call of showInfo(result) is ignored, since the argument is nothing."
+        return
+    end
+    
+    resultInfoTable = DataFrames.DataFrame(name=String[], unit=String[], nTime=String[], signalType=String[], valueSize=String[], eltype=String[])
+
+    for name in names(result)
+        (signalType, nTime, valueSize, elType, sigUnit) = signalInfo(result, name)
+        if isnothing(elType)
+            sigUnit2    = "???"
+            nTime2      = "???"
+            signalType2 = "???"
+            valueSize2  = "???"
+            elType2     = "???"
+
+        else
+            sigUnit2    = string(sigUnit)
+            nTime2      = string(nTime)
+            signalType2 = signalTypeToString[Int(signalType)]
+            valueSize2  = string(valueSize)
+            elType2     = string(elType)
+        end
+            
+        push!(resultInfoTable, [name, sigUnit2, nTime2, signalType2, valueSize2, elType2] )
+    end 
+    
+    return resultInfoTable
+end
+
+
+
+"""
+    showInfo(result)
+    
+Print names, units, signal types, values sizes, and element types
+of the signals that are stored in result as DataFrame table.
+"""
+function showInfo(result)::Nothing
+    resultInfoTable = info(result)
+    show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)   
+    println(stdout)    
+    return nothing
+end
+
+
+
+"""
+    ResultDict(defaultHeading=""; kwargs...)
+    
+Return a new ResultDict dictionary (is based on DataStructures.OrderedDict).
+
+- A key of the dictionary is a String. Key `"time"` characterizes the
+  independent variable.
+
+- A value of the dictionary is a tuple `(timeSignal, signal, signalType)`
+  where `timeSignal::Vector{AbstractVector}`,
+  `signal::Vector{AbstractVector}` and
+  `signalType::ModiaResult.SignalType.
+  `signal[i][j]` is the signalValue at time instant `timeSignal[i][j]` in segment `i`.
+
+# Example
+
+```julia
+using ModiaResult
+
+time0 = [0.0, 7.0]
+t     = ([time0], [time0], ModiaResult.TimeSignal)
+
+time1 = 0.0 : 0.1  : 2.0
+time2 = 3.0 : 0.01 : 3.5
+time3 = 5.0 : 0.1  : 7.0
+sigA1 = sin.(time1)u"m"
+sigA2 = cos.(time2)u"m"
+sigA3 = sin.(time3)u"m"
+sigA  = ([time1, time2, time3], 
+         [sigA1, sigA2, sigA3 ], 
+         ModiaResult.SignalType)
+sigB  = ([time2], [sin.(time2)], ModiaResult.SignalType)
+sigC  = ([time3], [sin.(time3)], ModiaResult.Clocked)    
+    
+result = ModiaResult.ResultDict("time" => t, 
+                                "sigA" => sigA,
+                                "sigB" => sigB,
+                                "sigC" => sigC,
+                                defaultHeading = "Three test signals")
+showInfo(result)
+```
+"""
+struct ResultDict    <: AbstractDict{String,Tuple{Any,Any,SignalType}}
+    dict::DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}
+    defaultHeading::String
+    
+    ResultDict(args...; defaultHeading="") = 
+        new(DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
+            defaultHeading)
+end
+
+
+        #new(DataStructures.OrderedDict{String,Tuple{Vector{AbstractVector},
+        #                                            Vector{AbstractVector},
+        #                                            ModiaResult.SignalType}}(args...),
+                                                    
+# Overload AbstractDict methods
+Base.haskey(result::ResultDict, key) = Base.haskey(result.dict, key)
+
+Base.get(result::ResultDict, key, default)     = Base.get(result.dict, key, default)
+Base.get(f::Function, result::ResultDict, key) = Base.get(f, result.dict, key)
+
+Base.get!(result::ResultDict, key, default)     = Base.get!(result.dict, key, default)
+Base.get!(f::Function, result::ResultDict, key) = Base.get!(f, result.dict, key)
+
+Base.getkey(result::ResultDict, key, default) = Base.getkey(result.dict, key, default)
+
+Base.delete!(result::ResultDict, key) = Base.delete!(result.dict, key)
+
+Base.keys(result::ResultDict) = Base.keys(result.dict)
+
+Base.pop!(result::ResultDict, key)          = Base.pop!(result.dict, key)
+Base.pop!(result::ResultDict, key, default) = Base.pop!(result.dict, key, default)
+
+Base.setindex!(result::ResultDict, value, key...) = Base.setindex!(result.dict, value, key...)
+
+Base.values(result::ResultDict) = Base.values(result.dict)
+
+
+
+
+"""
+    signalLength(signal)
+    
+Return the total number of values of `signal::Vector{AbstractVector}`.
+If signal[i] is nothing or missing, a length of zero is returned.
+"""
+function signalLength(signal::AbstractVector) 
+    for s in signal
+        if ismissing(s) || isnothing(s)
+            return 0
+        end
+    end
+    return sum( length(s) for s in signal )
+end
+
+   
+
+"""
+    hasSameSegments(signal1, signal2)
+    
+Return true, if the lengths of the segments in `signal1` and in `signal2` are the same.
+"""
+function hasSameSegments(signal1::Vector{AbstractVector}, signal2::Vector{AbstractVector})
+    if length(signal1) != length(signal2)
+        return false
+    end
+
+    for i = 1:length(signal1)
+        if length(signal1[i]) != length(signal2[i])
+            return false
+        end
+    end
+    
+    return true
+end
+      
+
+"""
+    hasDimensionMismatch(signal, timeSignal, timeSignalName)
+    
+Print a warning message if signalLength(signal) != signalLength(timeSignal)
+and return true. Otherwise, return false
+"""
+function hasDimensionMismatch(signal, signalName, timeSignal, timeSignalName::AbstractString)
+    if signalLength(signal) != signalLength(timeSignal)
+        lensignal = signalLength(signal)
+        lentime   = signalLength(timeSignal)
+        @warn "signalLength of \"$signalName\" = $lensignal but signalLength of \"$timeSignalName\" = $lentime" 
+        return true
+    end
+    return false
+end
+
+
+    
+"""
+    (sigType, nTime, sigSize, sigElType, sigUnit) = signalInfo(result, name)
+
+Return information about a signal, given the `name` of the signal in `result`:
+
+- `sigType::SignalType`: Ìnterpolation type of signal.
+
+- `nTime::Int`: Number of signal time points.
+
+- `sigSize`: size(signal[1][1])
+
+- `sigElType`: ustrip( eltype(signal[1][1]) ), that is the element type of the signal without unit.
+
+- `sigUnit`: Unit of signal 
+
+If `name` is defined, but no signal is available (= nothing, missing or zero length),
+return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit`.
+"""
+function signalInfo(result, name::AbstractString)
+    (signal, timeSignal, timeSignalName, sigType) = rawSignal(result,name)
+    if ismissing(signal) || isnothing(signal) || signalLength(signal) == 0 || 
+       hasDimensionMismatch(signal, name, timeSignal, timeSignalName)
+        return (sigType, 0, nothing, nothing, nothing)       
+    end
+
+    value     = signal[1][1]
+    valueSize = size(value)
+    valueUnit = unit(value[1])
+
+    if typeof(value) <: MonteCarloMeasurements.Particles
+        elTypeAsString = string(typeof(ustrip.(value[1])))
+        nparticles     = length(value)
+        valueElType    = "MonteCarloMeasurements.Particles{" * elTypeAsString * ",$nparticles}"
+    elseif typeof(value) <: MonteCarloMeasurements.StaticParticles
+        elTypeAsString = string(typeof(ustrip.(value[1])))
+        nparticles     = length(value)        
+        valueElType    = "MonteCarloMeasurements.StaticParticles{" * elTypeAsString * ",$nparticles}"    
+    else
+        valueElType = typeof( ustrip.(value) ) 
+    end
+    nTime = signalLength(timeSignal)
+    return (sigType, nTime, valueSize, valueElType, valueUnit)
+end
+
+
+
+"""
+    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = getSignal(result, name)
+    
+Return the signal defined by `name::AbstractString` as
+`signal::Vector{Matrix{<:Real}}`.
+`name` may include an array range, such as "a.b.c[2:3,5]".
+In this case `arrayName` is the name without the array indices,
+such as `"a.b.c"`, `arrayIndices` is a tuple with the array indices,
+such as `(2:3, 5)` and `nScalarSignals` is the number of scalar
+signals, such as `3` if arrayIndices = `(2:3, 5)`. 
+Otherwise `arrayName = name, arrayIndices=(), nScalarSignals=1`.
+
+In case the signal is not known or `name` cannot be interpreted,
+`(nothing, nothing, nothing, nothing, name, (), 0)` is returned.
+
+It is required that the value of the signal at a time instant 
+has either `typeof(value) <: Real` or
+`typeof(value) = AbstractArray{Real, N}`.
+The following `Real` types are currently supported:
+
+1. `convert(Float64, eltype(value)` is supported
+   (for example Float32, Float64, DoubleFloat, Rational, Int32, Int64, Bool).
+  
+2. Measurements.Measurement{<Type of (1)>}.
+
+3. MonteCarloMeasurements.StaticParticles{<Type of (1)>}.
+
+4. MonteCarloMeasurements.Particles{<Type of (1)>}.
+"""
+function getSignal(result, name::AbstractString)
+    sigPresent = false
+    if hasSignal(result, name)
+        (sig2, timeSig, timeSigName, sigType) = rawSignal(result, name)
+        if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
+              hasDimensionMismatch(sig2, name, timeSig, timeSigName) )
+            sigPresent = true
+            value      = sig2[1][1]
+            if ndims(value) == 0
+                sig            = sig2
+                arrayName      = name
+                arrayIndices   = ()
+                nScalarSignals = 1 
+            else
+                arrayName      = name     
+                arrayIndices   = Tuple(1:Int(ni) for ni in size(value)) 
+                nScalarSignals = length(value) 
+                sig = Vector{Matrix{eltype(value)}}(undef, length(sig2))
+                for segment = 1:length(sig2)      
+                    sig[segment] = zeros(eltype(value), length(sig2[segment]), nScalarSignals)
+                    siga  = sig[segment]
+                    sig2a = sig2[segment]
+                    for (i, value_i) in enumerate(sig2a)
+                        for j in 1:nScalarSignals
+                            siga[i,j] = sig2a[i][j]
+                        end
+                    end
+                end
+            end          
+        end
+        
+    else
+        # Handle signal arrays, such as a.b.c[3] or a.b.c[2:3, 1:5, 3]
+        if name[end] == ']'      
+            i = findlast('[', name)
+            if i >= 2
+                arrayName = name[1:i-1]
+                indices   = name[i+1:end-1]                 
+                if hasSignal(result, arrayName)
+                    (sig2, timeSig, timeSigName, sigType) = rawSignal(result, arrayName)
+                    if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
+                          hasDimensionMismatch(sig2, arrayName, timeSig, timeSigName) )
+                        sigPresent = true
+                        value = sig2[1][1]
+                        
+                        # Determine indices as tuple
+                        arrayIndices = eval( Meta.parse( "(" * indices * ",)" ) )       
+                        
+                        # Determine number of signals
+                        #nScalarSignals = sum( length(indexRange) for indexRange in arrayIndices )
+                        
+                        # Extract sub-matrix
+                        sig = Vector{Any}(undef,length(sig2))
+                        for segment = 1:length(sig2)
+                            sig2a = sig2[segment]
+                            sig[segment] = [getindex(sig2a[i], arrayIndices...) for i in eachindex(sig2a)]
+                        end
+                        
+                        # Determine number of signals
+                        nScalarSignals = length(sig[1][1])     
+                        
+                        # "flatten" array to matrix
+                        for segment = 1:length(sig2)      
+                            sig[segment] = zeros(eltype(value), length(sig2[segment]), nScalarSignals)
+                            siga  = sig[segment]
+                            sig2a = sig2[segment]
+                            for (i, value_i) in enumerate(sig2a)
+                                for j in 1:nScalarSignals
+                                    siga[i,j] = sig2a[i][j]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if sigPresent
+        return (sig, timeSig, timeSigName, sigType, arrayName, arrayIndices, nScalarSignals)
+    else
+        return (nothing, nothing, nothing, nothing, name, (), 0)
+    end
+end
+
+
+"""
+    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = 
+         getSignalWithWarning(result, name)
+    
+Call getSignal(result,name) and print a warning message if `signal == nothing`
+"""
+function getSignalWithWarning(result,name::AbstractString)
+    (sig, timeSig, timeSigName, sigType, arrayName, arrayIndices, nScalarSignals) = getSignal(result,name)
+    if isnothing(sig)
+        @warn "\"$name\" is not correct or is not defined or has no values."
+    end
+    return (sig, timeSig, timeSigName, sigType, arrayName, arrayIndices, nScalarSignals)
+end
+
+
+appendUnit2(name, unit) = unit == "" ? name : string(name, " [", unit, "]")
+
+
+function appendUnit(name, value)
+    if typeof(value) <: MonteCarloMeasurements.StaticParticles ||
+       typeof(value) <: MonteCarloMeasurements.Particles
+        appendUnit2(name, string(unit(value.particles[1])))
+    else
+        appendUnit2(name, string(unit(value)))
+    end
+end
+
+
+"""
+    (xsig, xsigLegend, ysig, ysigLegend, ysigType) = getPlotSignal(result, xsigName, ysigName)
+
+Given the name of the signal used for the x-axis (`xsigName::AbstractString`)
+and the name used for the y-axis (`ysigName::AbstractString`), return
+
+- `xsig::Vector{Vector{Matrix{Real}}}`: the x-axis signal (the matrix has one column)
+
+- `ysig::Vector{Vector{Matrix{Real}}}`: the y-axis signal.
+
+- `xsigLegend::AbstractString`: the legend of the x-axis signal.
+
+- `ysigLegend::Vector{AbstractString}`: the legend of the y-axis signal as String vector,
+
+- `ysigType::ModiaResult.SignalType`: Type of signal `ysig`.
+ 
+xsig[i][j,1] are the x-values at time instant `j` of segment `i`
+ 
+ysig[i][j,:] are the (flattened) array values at time instant `j` of segment `i`.
+"""      
+function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractString)
+    (ysig, xsig, timeSigName, ysigType, ysigArrayName, ysigArrayIndices, nysigScalarSignals) = getSignalWithWarning(result, ysigName)
+    
+    # Check y-axis signal and time signal
+    if isnothing(ysig) || isnothing(xsig) || isnothing(timeSigName)  || signalLength(ysig) == 0
+        @goto ERROR   
+    end   
+    
+    # Get x-axis signal if xsig is no time signal
+    if xsigName != timeSigName 
+        (xsig, xsigTime, xsigTimeName, xsigType, xsigArrayName, xsigArrayIndices, nxsigScalarSignals) = getSignalWithWarning(result, xsigName)
+        if isnothing(xsig) || isnothing(xsigTime) || isnothing(xsigTimeName) || signalLength(xsig) == 0
+            @goto ERROR
+        elseif !hasSameSegments(ysig, xsig)
+            @warn "\"$xsigName\" (= x-axis) and \"$ysigName\" (= y-axis) have not the same time signal vector."
+            @goto ERROR                
+        end
+    end 
+
+    # Check x-axis signal
+    xsigValue = xsig[1][1]
+    if length(xsigValue) != 1
+        @warn "\"$xsigName\" does not characterize a scalar variable as needed for the x-axis."
+        @goto ERROR
+    elseif !( typeof(xsigValue) <: Number )    
+        @warn "\"$xsigName\" has no Number type values, but values of type " * string(typeof(xsigValue)) * "."        
+        @goto ERROR    
+    elseif typeof(xsigValue) <: Measurements.Measurement
+        @warn "\"$xsigName\" is a Measurements.Measurement type and this is not (yet) supported for the x-axis."
+        @goto ERROR    
+    elseif typeof(xsigValue) <: MonteCarloMeasurements.StaticParticles
+        @warn "\"$xsigName\" is a MonteCarloMeasurements.StaticParticles type and this is not supported for the x-axis."
+        @goto ERROR  
+    elseif typeof(xsigValue) <: MonteCarloMeasurements.Particles
+        @warn "\"$xsigName\" is a MonteCarloMeasurements.Particles type and this is not supported for the x-axis."
+        @goto ERROR  
+    end    
+    
+    # Build xsigLegend
+    xsigLegend = appendUnit(xsigName, xsigValue)
+
+    # Get one segment of the y-axis and check it
+    ysegment1 = ysig[1]
+    if !( typeof(ysegment1) <: Vector || typeof(ysegment1) <: Matrix )
+        @error "Bug in function: typeof of an y-axis segment is neither a vector nor a Matrix, but " * string(typeof(ysegment1)) 
+    elseif !(eltype(ysegment1) <: Number)
+        @warn "\"$ysigName\" has no Number values but values of type " * string(eltype(ysegment1))
+        @goto ERROR    
+    end
+
+    # Build ysigLegend
+    value = ysegment1[1]
+    if ysigArrayIndices == ()
+        # ysigName is a scalar variable
+        ysigLegend = [appendUnit(ysigName, value)]        
+        
+    else
+        # ysigName is an array variable
+        ysigLegend = [ysigArrayName * "[" for i = 1:nysigScalarSignals]
+        i = 1
+        ySizeLength = Int[]        
+        for j1 in eachindex(ysigArrayIndices)
+            push!(ySizeLength, length(ysigArrayIndices[j1]))
+            i = 1
+            if j1 == 1
+                for j2 in 1:div(nysigScalarSignals, ySizeLength[1])
+                    for j3 in ysigArrayIndices[1]
+                        ysigLegend[i] *= string(j3)
+                        i += 1
+                    end
+                end
+            else
+                ncum = prod( ySizeLength[1:j1-1] )
+                for j2 in ysigArrayIndices[j1]
+                    for j3 = 1:ncum
+                        ysigLegend[i] *= "," * string(j2)                       
+                        i += 1
+                    end
+                end
+            end
+        end
+
+        for i = 1:nysigScalarSignals
+            ysigLegend[i] *= appendUnit("]", ysegment1[1,i])
+        end
+    end
+           
+    xsig2 = Vector{Any}(undef, length(xsig))
+    ysig2 = Vector{Any}(undef, length(ysig))
+    for i = 1:length(xsig)
+        xsig2[i] = collect(ustrip.(xsig[i]))
+        ysig2[i] = collect(ustrip.(ysig[i]))
+    end
+    return (xsig2, xsigLegend, ysig2, ysigLegend, ysigType)
+    
+    @label ERROR
+    return (nothing, nothing, nothing, nothing, nothing)
+end
+
+
+
+"""
+    getHeading(result, heading)
+    
+Return `heading` if no empty string. Otherwise, return `defaultHeading(result)`.
+"""
+getHeading(result, heading::AbstractString) = heading != "" ? heading : defaultHeading(result)
+
+
+
+"""
+    prepend!(prefix, signalLegend)
+    
+Add `prefix` string in front of every element of the `signalLegend` string-Vector.
+"""
+function prepend!(prefix::AbstractString, signalLegend::Vector{AbstractString})
+   for i in eachindex(signalLegend)
+      signalLegend[i] = prefix*signalLegend[i]
+   end
+   return signalLegend
+end
+
