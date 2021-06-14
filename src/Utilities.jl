@@ -14,7 +14,7 @@ import MonteCarloMeasurements
 import Pkg
 isinstalled(pkg::String) = any(x -> x.name == pkg && x.is_direct_dep, values(Pkg.dependencies()))
 
-const AvailableModiaPlotPackages = ["GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot"]
+const AvailableModiaPlotPackages = ["GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot", "SilentNoPlot"]
 const ModiaPlotPackagesStack = String[]
 
 
@@ -25,12 +25,20 @@ Define the ModiaPlot package that shall be used by command `ModiaResult.@usingMo
 If a ModiaPlot package is already defined, save it on an internal stack
 (can be reactivated with `activatePreviousPlotPackage()`.
 
+Possible values for `plotPackage`:
+- `"GLMakie"`
+- `"WGLMakie"`
+- `"CairoMakie"`
+- `"PyPlot"`
+- `"NoPlot"`
+- `"SilentNoPlot"`
+
 # Example
 
 ```julia
 import ModiaResult
 
-ModiaResult.activate("GLMakie")  # or "PyPlot" or "NoPlot"
+ModiaResult.activate("GLMakie")
 
 module MyTest
     ModiaResult.@usingModiaPlot
@@ -44,21 +52,32 @@ end
 """
 function activate(plotPackage::String)::Bool
     success = true
-    plotPackageName = "ModiaPlot_" * plotPackage
-    if plotPackage in AvailableModiaPlotPackages
-        # Check that plotPackage is defined in current environment
-        if isinstalled(plotPackageName)
-            if haskey(ENV, "MODIA_PLOT")
-                push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
-            end
-            ENV["MODIA_PLOT"] = plotPackage
+    if plotPackage == "NoPlot" || plotPackage == "SilentNoPlot"
+        if haskey(ENV, "MODIA_PLOT")
+            push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
+        end
+        if plotPackage == "NoPlot"
+            ENV["MODIA_PLOT"] = "NoPlot"
         else
-            @warn "... activate(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
-            success = false
+            ENV["MODIA_PLOT"] = "SilentNoPlot"
         end
     else
-        @warn "\n... activate(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
-        success = false
+        plotPackageName = "ModiaPlot_" * plotPackage
+        if plotPackage in AvailableModiaPlotPackages
+            # Check that plotPackage is defined in current environment
+            if isinstalled(plotPackageName)
+                if haskey(ENV, "MODIA_PLOT")
+                    push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
+                end
+                ENV["MODIA_PLOT"] = plotPackage
+            else
+                @warn "... activate(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
+                success = false
+            end
+        else
+            @warn "\n... activate(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
+            success = false
+        end
     end
     return success
 end
@@ -103,26 +122,30 @@ macro usingModiaPlot()
     if haskey(ENV, "MODIA_PLOT")
         ModiaPlotPackage = ENV["MODIA_PLOT"]
         if !(ModiaPlotPackage in AvailableModiaPlotPackages)
-            @warn "ENV[\"MODIA_PLOT\"] = \"$ModiaPlotPackage\" is not supported!."
+            @warn "ENV[\"MODIA_PLOT\"] = \"$ModiaPlotPackage\" is not supported!. Using \"NoPlot\"."
+            @goto USE_NO_PLOT
+        elseif ModiaPlotPackage == "NoPlot"
+            @goto USE_NO_PLOT
+        elseif ModiaPlotPackage == "SilentNoPlot"
+            expr = :( import ModiaResult.SilentNoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures, resultInfo, showResultInfo )
+            return esc( expr )           
         else
             ModiaPlotPackage = Symbol("ModiaPlot_" * ModiaPlotPackage)
             expr = :(using $ModiaPlotPackage)
             println("$expr")            
             return esc( :(using $ModiaPlotPackage) )
         end
+        
+    else
+        @warn "No plot package activated. Using \"NoPlot\"."
+        @goto USE_NO_PLOT
     end
     
-    if isinstalled("ModiaPlot_NoPlot")
-        ModiaPlotPackage = Symbol("ModiaPlot_NoPlot")
-        expr = :(using $ModiaPlotPackage)
-        println("$expr")
-        return esc( expr )        
-    end
-    return nothing
+    @label USE_NO_PLOT
+    expr = :( import ModiaResult.NoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures, resultInfo, showResultInfo )
+    println("$expr")
+    return esc( expr )
 end
-
-
-
 
 
 const signalTypeToString = ["TimeSignal", "Continuous", "Clocked"]
