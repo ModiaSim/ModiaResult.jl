@@ -133,6 +133,12 @@ you might utilize the following approach.
 
 ## Release Notes
 
+
+### Version 0.2.1
+
+- Bug fixed: `<: Vector` changed to `<: AbstractVector`
+
+
 ### Version 0.2.0
 
 - Abstract Interface slightly redesigned (therefore 0.2.0 is not backwards compatible to 0.1.0).

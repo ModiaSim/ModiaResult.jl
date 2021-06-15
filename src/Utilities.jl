@@ -598,7 +598,7 @@ function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractStrin
 
     # Get one segment of the y-axis and check it
     ysegment1 = ysig[1]
-    if !( typeof(ysegment1) <: Vector || typeof(ysegment1) <: Matrix )
+    if !( typeof(ysegment1) <: AbstractVector || typeof(ysegment1) <: AbstractMatrix )
         @error "Bug in function: typeof of an y-axis segment is neither a vector nor a Matrix, but " * string(typeof(ysegment1)) 
     elseif !(eltype(ysegment1) <: Number)
         @warn "\"$ysigName\" has no Number values but values of type " * string(eltype(ysegment1))
