@@ -3,10 +3,6 @@
 #
 # This file is part of module ModiaResult (is included by the ModiaPlot_xxxMakie packages).
 
-export plot, showFigure, saveFigure, closeFigure, closeAllFigures
-export resultInfo, showResultInfo
-
-
 
 """
     resultInfo(result)
@@ -57,7 +53,7 @@ showResultInfo(result) = ModiaResult.showInfo(result)
 Generate **line plots** of the signals of the `result` data structure that are
 identified with the `names` keys using the plot package defined with
 `ModiaResult.@activate(xxx)`. Possible values for `xxx`:
-`"GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot"`).
+`"GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot", "SilentNoPlot"`).
 
 `result` is any data structures that supports the abstract interface of `ModiaResult`. 
 Currently these are:

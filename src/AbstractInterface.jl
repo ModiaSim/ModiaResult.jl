@@ -7,6 +7,8 @@
 # The following functions must be defined by the package that generates a result:
 #     rawSignal(result, name)
 #     names(result)
+#     timeSignalName(result)
+#     hasOneTimeSignal(result)
 #
 # The following functions can be defined by the package that generates a result
 # (below is a default implementation):
@@ -47,8 +49,7 @@ Defines the type of the signal. Supported values:
 
 
 """
-    (signal, timeSignal, timeSignalName, signalType) = 
-            ModiaResult.rawSignal(result, name)
+    (timeSignal, signal, signalType) = ModiaResult.rawSignal(result, name)
     
 Returns 
 
@@ -57,8 +58,6 @@ Returns
    array of Real numbers (`eltype(signal[i][j]) <: Real`),
  
 - the corresponding `timeSignal::Vector{Vector{Real}}` of the independent variable,
-
-- the `timeSignalName::AbstractString` of the `timeSignal` and
 
 - the information `signalType::SignalType` that defines how the signal shall be 
   interpolated. 
@@ -89,6 +88,24 @@ function rawSignal end
 Return a string vector of the signal names that are present in result.
 """
 function names end
+
+
+"""
+    ModiaResult.timeSignalName(result)
+    
+Return the name of the time signal (default: "time").
+"""
+function timeSignalName end
+
+
+
+"""
+    ModiaResult.hasOneTimeSignal(result)
+    
+Return true if `result` has one time signal.
+Return false, if `result` has two or more time signals.
+"""
+function hasOneTimeSignal end
 
 
 

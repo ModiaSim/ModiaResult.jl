@@ -11,7 +11,13 @@ plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true,
      minXaxisTickLabels::Bool=false, MonteCarloAsArea=false) = nothing
 showFigure(figure::Int)  = nothing
 closeFigure(figure::Int) = nothing
-closeAllFigures()        = nothing
 saveFigure(figure::Int, fileName::AbstractString) = nothing
+
+"""
+    closeAllFigures()
+
+Close all figures.
+"""
+closeAllFigures() = nothing
 
 end

@@ -165,6 +165,7 @@ function info(result)
     
     resultInfoTable = DataFrames.DataFrame(name=String[], unit=String[], nTime=String[], signalType=String[], valueSize=String[], eltype=String[])
 
+    timeSigName = timeSignalName(result)
     for name in names(result)
         (signalType, nTime, valueSize, elType, sigUnit) = signalInfo(result, name)
         if isnothing(elType)
@@ -176,7 +177,7 @@ function info(result)
 
         else
             sigUnit2    = string(sigUnit)
-            nTime2      = string(nTime)
+            nTime2      = name==timeSigName && !hasOneTimeSignal(result) ? "---" : string(nTime)
             signalType2 = signalTypeToString[Int(signalType)]
             valueSize2  = string(valueSize)
             elType2     = string(elType)
@@ -206,7 +207,7 @@ end
 
 
 """
-    ResultDict(defaultHeading=""; kwargs...)
+    ResultDict(args...; defaultHeading="", hasOneTimeSignal=true)
     
 Return a new ResultDict dictionary (is based on DataStructures.OrderedDict).
 
@@ -243,17 +244,19 @@ result = ModiaResult.ResultDict("time" => t,
                                 "sigA" => sigA,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
-                                defaultHeading = "Three test signals")
+                                defaultHeading = "Three test signals",
+                                hasOneTimeSignal = false)
 showInfo(result)
 ```
 """
 struct ResultDict    <: AbstractDict{String,Tuple{Any,Any,SignalType}}
     dict::DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}
     defaultHeading::String
+    hasOneTimeSignal::Bool
     
-    ResultDict(args...; defaultHeading="") = 
+    ResultDict(args...; defaultHeading="", hasOneTimeSignal=true) = 
         new(DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
-            defaultHeading)
+            defaultHeading, hasOneTimeSignal)
 end
 
 
@@ -360,9 +363,9 @@ If `name` is defined, but no signal is available (= nothing, missing or zero len
 return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit`.
 """
 function signalInfo(result, name::AbstractString)
-    (signal, timeSignal, timeSignalName, sigType) = rawSignal(result,name)
+    (timeSignal, signal, sigType) = rawSignal(result,name)
     if ismissing(signal) || isnothing(signal) || signalLength(signal) == 0 || 
-       hasDimensionMismatch(signal, name, timeSignal, timeSignalName)
+       hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
         return (sigType, 0, nothing, nothing, nothing)       
     end
 
@@ -419,7 +422,8 @@ The following `Real` types are currently supported:
 function getSignal(result, name::AbstractString)
     sigPresent = false
     if hasSignal(result, name)
-        (sig2, timeSig, timeSigName, sigType) = rawSignal(result, name)
+        (timeSig, sig2, sigType) = rawSignal(result, name)
+        timeSigName = timeSignalName(result)
         if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
               hasDimensionMismatch(sig2, name, timeSig, timeSigName) )
             sigPresent = true
@@ -455,7 +459,8 @@ function getSignal(result, name::AbstractString)
                 arrayName = name[1:i-1]
                 indices   = name[i+1:end-1]                 
                 if hasSignal(result, arrayName)
-                    (sig2, timeSig, timeSigName, sigType) = rawSignal(result, arrayName)
+                    (timeSig, sig2, sigType) = rawSignal(result, arrayName)
+                    timeSigName = timeSignalName(result)
                     if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
                           hasDimensionMismatch(sig2, arrayName, timeSig, timeSigName) )
                         sigPresent = true

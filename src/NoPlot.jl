@@ -13,7 +13,13 @@ plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true,
      
 showFigure(figure::Int)  = println("... showFigure($figure): Call is ignored, because of ModiaResult.activate(\"NoPlot\").")
 closeFigure(figure::Int) = println("... closeFigure($figure): Call is ignored, because of ModiaResult.activate(\"NoPlot\").")
-closeAllFigures()        = println("... closeAllFigures(): Call is ignored, because of ModiaResult.activate(\"NoPlot\").")
 saveFigure(figure::Int, fileName::AbstractString) = println("... saveFigure($figure,\"$fileName\"): Call is ignored, because of ModiaResult.activate(\"NoPlot\").")
+
+"""
+    closeAllFigures()
+
+Close all figures.
+"""
+closeAllFigures() = println("... closeAllFigures(): Call is ignored, because of ModiaResult.activate(\"NoPlot\").")
 
 end

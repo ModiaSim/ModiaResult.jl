@@ -27,7 +27,8 @@ result = ModiaResult.ResultDict("time" => t0,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
                                 "r"    => r,
-                                defaultHeading = "Signals from test_72_ResultDictWithMatrixOfPlots")  
+                                defaultHeading = "Signals from test_72_ResultDictWithMatrixOfPlots",
+                                hasOneTimeSignal = false)  
 
 println("\n... test_72_ResultDictWithMatrixOfPlots.jl:\n")
 ModiaResult.showInfo(result)
