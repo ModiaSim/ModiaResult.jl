@@ -6,9 +6,10 @@ makedocs(
   authors  = "Martin Otter (DLR-SR)",
   format = Documenter.HTML(prettyurls = false),
   pages    = [
-     "Home"      => "index.md",
-	 "Functions" => "Functions.md",
-     "AbstractInterface" => "AbstractInterface.md",
-  	 "Internal"  => "Internal.md",
+     "Home"               => "index.md",
+     "Getting Started"    => "GettingStarted.md",     
+	 "Functions"          => "Functions.md",
+     "Abstract Interface" => "AbstractInterface.md",
+  	 "Internal"           => "Internal.md",
   ]
 )
