@@ -1,6 +1,9 @@
+module test_22_MatrixOfPlots
+
 using ModiaResult
 using DataStructures
 using Unitful
+ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 
@@ -17,3 +20,8 @@ result["r"]    = [[0.4 * cos(t[i]),
 
 println("\n... test_22_MatrixOfPlots:")
 ModiaResult.showInfo(result)
+
+plot(result, [ ("phi", "r")        ("phi", "phi2", "w");
+               ("w", "w2", "phi2") "w"                 ], heading="Matrix of plots")
+
+end

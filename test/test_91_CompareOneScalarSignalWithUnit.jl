@@ -1,6 +1,9 @@
+module test_91_CompareOneScalarSignalWithUnit
+
 using ModiaResult
 using Unitful
 using DataFrames
+ModiaResult.@usingModiaPlotPackage
 
 t = range(0.0, stop=10.0, length=100)
 
@@ -22,3 +25,13 @@ println("success2 = $success2, max_error2 = $max_error2, within_tolerance2 = $wi
 
 (success3, diff3, diff_names3, max_error3, within_tolerance3) = ModiaResult.compareResults(result1, result3)
 println("success3 = $success3, max_error3 = $max_error3, within_tolerance3 = $within_tolerance3")
+
+plot(result1, "w", prefix="r1.")
+plot(result2, "w", prefix="r2.", reuse=true)
+plot(result3, "w", prefix="r3.", reuse=true)
+
+plot(diff2, "w", prefix="diff2_", figure=2)
+
+plot(diff3, "w", prefix="diff3_", figure=2, reuse=true)
+
+end

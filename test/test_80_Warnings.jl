@@ -1,6 +1,9 @@
+module test_80_Warnings
+
 using ModiaResult
 using DataStructures
 using Unitful
+ModiaResult.@usingModiaPlot
 
 t  = range(0.0, stop=10.0, length=100)
 t2 = range(0.0, stop=10.0, length=110)
@@ -22,3 +25,11 @@ result["wrongSizeSignal"] = sin.(t2)u"rad"
 
 println("\n... test_40_Warnings")
 ModiaResult.showInfo(result)
+
+plot(result, ("phi", "r", "signalNotDefined"), heading="Plot with warning 1" , figure=1)
+plot(result, ("signalNotDefined",
+              "nothingSignal",
+              "emptySignal",
+              "wrongSizeSignal"), 
+              heading="Plot with warning 2" , figure=2)
+end

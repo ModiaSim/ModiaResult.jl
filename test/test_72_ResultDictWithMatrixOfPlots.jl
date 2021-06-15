@@ -1,5 +1,8 @@
+module test_72_ResultDictWithMatrixOfPlots
+
 using ModiaResult
 using Unitful
+ModiaResult.@usingModiaPlot
 
 tr = [0.0, 15.0]
 t0 = (tr, tr, ModiaResult.TimeSignal)
@@ -28,3 +31,7 @@ result = ModiaResult.ResultDict("time" => t0,
 
 println("\n... test_72_ResultDictWithMatrixOfPlots.jl:\n")
 ModiaResult.showInfo(result)
+
+plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
+
+end

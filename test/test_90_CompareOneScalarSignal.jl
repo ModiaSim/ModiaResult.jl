@@ -1,6 +1,9 @@
+module test_90_CompareOneScalarSignal
+
 using ModiaResult
 using DataStructures
 using DataFrames
+ModiaResult.@usingModiaPlotPackage
 
 t1 = range(0.0, stop=10.0, length=100)
 t2 = deepcopy(t1)
@@ -44,3 +47,25 @@ println("success3 = $success3, max_error3 = $max_error3, within_tolerance3 = $wi
 
 (success4, diff4, diff_names4, max_error4, within_tolerance4) = ModiaResult.compareResults(result1, result4)
 println("success4 = $success4, max_error4 = $max_error4, within_tolerance4 = $within_tolerance4")
+
+plot(result1, "phi", prefix="r1.")
+plot(result2, "phi", prefix="r2.", reuse=true)
+plot(result3, "phi", prefix="r3.", reuse=true)
+plot(result4, "phi", prefix="r4.", reuse=true)
+
+plot(result1b, "phi", prefix="r1b.", reuse=true)
+plot(result2b, "phi", prefix="r2b.", reuse=true)
+
+plot(result1c, "phi", prefix="r1c.", reuse=true)
+plot(result3b, "phi", prefix="r3b.", reuse=true)
+
+plot(result1d, "phi", prefix="r1d.", reuse=true)
+plot(result4b, "phi", prefix="r4b.", reuse=true)
+
+plot(diff2, "phi", prefix="diff2_", figure=2)
+
+plot(diff3, "phi", prefix="diff3_", figure=2, reuse=true)
+
+plot(diff4, "phi", prefix="diff4_", figure=2, reuse=true)
+
+end

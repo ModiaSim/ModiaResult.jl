@@ -1,6 +1,9 @@
+module test_25_SeveralFigures
+
 using ModiaResult
 using DataStructures
 using Unitful
+ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 
@@ -17,3 +20,9 @@ result["r"]    = [[0.4 * cos(t[i]),
 
 println("\n... test_25_SeveralFigures:")
 ModiaResult.showInfo(result)
+
+plot(result, ("phi", "r")       , heading="First figure" , figure=1)
+plot(result, ["w", "w2", "r[2]"], heading="Second figure", figure=2)
+plot(result, "r"                , heading="Third figure" , figure=3)
+
+end

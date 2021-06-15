@@ -1,9 +1,11 @@
+module test_52_MonteCarloMeasurementsWithDistributions
+
 using ModiaResult
 using DataStructures
 using Unitful
 using MonteCarloMeasurements
 using Distributions
-
+ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 uniform1(xmin,xmax) = MonteCarloMeasurements.Particles(      100,Distributions.Uniform(xmin,xmax))
@@ -21,4 +23,12 @@ result["phi3"] = [sin(t[i]) ∓ 0.4*t[i]/10.0        for i in eachindex(t)]*u"ra
 
 println("\n... test_52_MonteCarloMeasurementsWithDistributions:")
 ModiaResult.showInfo(result)
+
+plot(result, ["phi1", "phi2", "phi3"], figure=1,
+     heading="Sine(time) with MonteCarloParticles/StaticParticles (plot area)")
+     
+plot(result, ["phi1", "phi2", "phi3"], figure=2,
+     heading="Sine(time) with MonteCarloParticles/StaticParticles (plot all runs)")
+
+end
 

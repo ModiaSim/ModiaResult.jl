@@ -23,7 +23,7 @@ const ModiaPlotPackagesStack = String[]
     
 Define the ModiaPlot package that shall be used by command `ModiaResult.@usingModiaPlot`.
 If a ModiaPlot package is already defined, save it on an internal stack
-(can be reactivated with `activatePreviousPlotPackage()`.
+(can be reactivated with `activatePrevious()`.
 
 Possible values for `plotPackage`:
 - `"GLMakie"`
@@ -85,17 +85,17 @@ end
 
 
 """
-    activatePreviousPlotPackage()
+    activatePrevious()
     
 Pop the last saved ModiaPlot package from an internal stack
 and call `activate(<popped ModiaPlot package>)`.
 """
-function activatePreviousPlotPackage()::Bool
+function activatePrevious()::Bool
     if length(ModiaPlotPackagesStack) > 0
         plotPackage = pop!(ModiaPlotPackagesStack)
         success = activate(plotPackage)
     else
-        @warn "activatePreviousPlotPackage(): Call ignored, because nothing saved."
+        @warn "activatePrevious(): Call ignored, because nothing saved."
         success = false
     end
     return success
@@ -103,12 +103,12 @@ end
 
 
 """
-    activatedPlotPackage()
+    activated()
     
 Return the name of the activated plot package as a string (e.g. return "GLMakie" or "PyPlot")
 or "", if no PlotPackage is defined
 """
-activatedPlotPackage() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
+activated() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
 
 
 

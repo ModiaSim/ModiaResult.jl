@@ -1,7 +1,7 @@
 # License for this file: MIT (expat)
 # Copyright 2020-2021, DLR Institute of System Dynamics and Control
 #
-# This file is part of module ModiaResult (is included by the ModiaPlot_XXX packages).
+# This file is part of module ModiaResult (is included by the ModiaPlot_XXMakie packages).
    
         
 #--------------------------- Utility definitions

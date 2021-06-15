@@ -1,7 +1,7 @@
 # Functions
 
 ```@meta
-CurrentModule = ModiaPlot_PyPlot
+CurrentModule = ModiaResult
 ```
 
 This chapter documents the functions that a user of this package typically utilizes.
@@ -27,8 +27,8 @@ This chapter documents the functions that a user of this package typically utili
 ```@docs
 ModiaResult.ResultDict
 ModiaResult.activate
-ModiaResult.activatePreviousPlotPackage
-ModiaResult.activatedPlotPackage
+ModiaResult.activatePrevious
+ModiaResult.activated
 ModiaResult.@usingModiaPlot
 ```
 
@@ -41,13 +41,7 @@ The following functions are available after
 ModiaResult.@usingModiaPlot
 ```
 
-has been executed:
-
-```@meta
-CurrentModule = ModiaPlot_PyPlot
-```
-
-The documentation below was generated with `ModiaResult.activate("PyPlot")`.
+has been executed. The documentation below was generated with `ModiaResult.activate("NoPlot")`.
 
 
 ```@docs

@@ -1,6 +1,8 @@
+module test_0_ResultDict
+
 using ModiaResult
 using Unitful
-
+ModiaResult.@usingModiaPlot
 
 time0 = [0.0, 15.0]
 t     = ([time0], [time0], ModiaResult.TimeSignal)
@@ -27,3 +29,6 @@ result = ModiaResult.ResultDict("time" => t,
 println("\n... test_70_ResultDict.jl:\n")
 ModiaResult.showInfo(result)
 
+plot(result, ("sigA", "sigB", "sigC"))
+
+end
