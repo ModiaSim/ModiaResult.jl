@@ -133,6 +133,14 @@ you might utilize the following approach.
 
 ## Release Notes
 
+### Version 0.2.2
+
+- Overloaded AstractDicts generalized from `AbstractDict{String,T} where {T}` to\
+  `AbstractDict{T1,T2} where {T1<:AbstractString,T2}`.
+
+- Bug fixed.
+
+
 
 ### Version 0.2.1
 
