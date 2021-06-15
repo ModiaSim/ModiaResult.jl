@@ -133,6 +133,18 @@ you might utilize the following approach.
 
 ## Release Notes
 
+### Version 0.2.0
+
+- Abstract Interface slightly redesigned (therefore 0.2.0 is not backwards compatible to 0.1.0).
+
+- Modules NoPlot and SilentNoPlot added as sub-modules of ModiaResult. These modules are
+  activated if plot package "NoPlot" or "SilentNoPlot" are selected.
+
+- Content of directory src_plot moved into src. Afterwards src_plot was removed.
+
+- Directory test_plot merged into test (and then removed).
+  
+
 ### Version 0.1.0
 
 - Initial version (based on the result plotting developed for [ModiaMath](https://github.com/ModiaSim/ModiaMath.jl)).
