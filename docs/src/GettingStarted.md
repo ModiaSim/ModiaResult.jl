@@ -1,6 +1,6 @@
 # Getting Started
 
-Note, many examples are available at `$(ModiaResult.path)/test_plot/*.jl`.
+Note, many examples are available at `$(ModiaResult.path)/test/*.jl`.
 
 
 ## Simple plot
@@ -61,7 +61,8 @@ result = ModiaResult.ResultDict("time" => t0,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
                                 "r"    => r,
-                                defaultHeading = "Segmented signals") 
+                                defaultHeading = "Segmented signals",
+                                hasOneTimeSignal = false) 
                         
 # Generate line plots                     
 ModiaResult.@usingModiaPlot   # = "using ModiaPlot_PyPlot"

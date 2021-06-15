@@ -21,27 +21,31 @@ Additionally, **operations** on simulation results are provided, especially to p
 - [WGLMakie](https://github.com/JuliaPlots/WGLMakie.jl) (interactive plots in a browser window),
 - [CairoMakie](https://github.com/JuliaPlots/CairoMakie.jl) (static plots on file with publication quality),
 - [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with Matplotlib from Python) and 
-- NoPlot (= all plot calls are ignored).
+- NoPlot (= all plot calls are ignored; NoPlot is a module in ModiaResult), or
+- SilentNoPlot (= NoPlot without messages; SilentNoPlot is a module in ModiaResult).
 
 
 ## Installation
 
-ModiaResult and the accompanying plot packages are currently being registered. During this phase, the packages are installed as (Julia >= 1.5 is required):
+ModiaResult is registered. The accompanying plot packages are currently being registered.
+During this phase, the packages are installed as (Julia >= 1.5 is required):
 
 ```julia
-julia> ]add https://github.com/ModiaSim/ModiaResult.jl
+julia> ]add ModiaResult,
         add https://github.com/ModiaSim/ModiaPlot_GLMakie.jl
         add https://github.com/ModiaSim/ModiaPlot_WGLMakie.jl
         add https://github.com/ModiaSim/ModiaPlot_CairoMakie.jl
         add https://github.com/ModiaSim/ModiaPlot_PyPlot.jl
-        add https://github.com/ModiaSim/ModiaPlot_NoPlot.jl
 ```
 
-Once registered, install the packages with:
+Once all packages are registered, install the packages with:
 
 ```julia
-julia> ]add ModiaResult, ModiaPlot_GLMakie, ModiaPlot_WGLMakie
-        add ModiaPlot_CairoMakie, ModiaPlot_PyPlot, ModiaPlot_NoPlot
+julia> ]add ModiaResult
+        add ModiaPlot_GLMakie
+        add ModiaPlot_WGLMakie
+        add ModiaPlot_CairoMakie
+        add ModiaPlot_PyPlot
 ```
 
 
@@ -100,7 +104,8 @@ result = ModiaResult.ResultDict("time" => t0,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
                                 "r"    => r,
-                                defaultHeading = "Segmented signals") 
+                                defaultHeading = "Segmented signals",
+                                hasOneTimeSignal = false) 
                         
 # Generate line plots                     
 ModiaResult.@usingModiaPlot   # = "using ModiaPlot_PyPlot"
@@ -112,7 +117,7 @@ Executing this code results in the following plot:
 ![SegmentedSignalsPlot](docs/resources/images/segmented-signals-plot.png)
 
 
-Many other examples are available at `$(ModiaResult.path)/test_plot/*.jl`.
+Many other examples are available at `$(ModiaResult.path)/test/*.jl`.
 
 
 
