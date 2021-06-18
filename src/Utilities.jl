@@ -50,10 +50,10 @@ module MyTest
 end
 ```
 """
-function activate(plotPackage::String)::Bool
+function activate(plotPackage::String; pushPreviousOnStack=true)::Bool
     success = true
     if plotPackage == "NoPlot" || plotPackage == "SilentNoPlot"
-        if haskey(ENV, "MODIA_PLOT")
+        if  pushPreviousOnStack && haskey(ENV, "MODIA_PLOT")
             push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
         end
         if plotPackage == "NoPlot"
@@ -66,7 +66,7 @@ function activate(plotPackage::String)::Bool
         if plotPackage in AvailableModiaPlotPackages
             # Check that plotPackage is defined in current environment
             if isinstalled(plotPackageName)
-                if haskey(ENV, "MODIA_PLOT")
+                if pushPreviousOnStack && haskey(ENV, "MODIA_PLOT")
                     push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
                 end
                 ENV["MODIA_PLOT"] = plotPackage
@@ -93,7 +93,7 @@ and call `activate(<popped ModiaPlot package>)`.
 function activatePrevious()::Bool
     if length(ModiaPlotPackagesStack) > 0
         plotPackage = pop!(ModiaPlotPackagesStack)
-        success = activate(plotPackage)
+        success = activate(plotPackage, pushPreviousOnStack=false)
     else
         @warn "activatePrevious(): Call ignored, because nothing saved."
         success = false
