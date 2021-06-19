@@ -3,7 +3,6 @@
 
 module SilentNoPlot
 
-import ModiaResult
 include("plot.jl")
 
 plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true, xAxis="time", 

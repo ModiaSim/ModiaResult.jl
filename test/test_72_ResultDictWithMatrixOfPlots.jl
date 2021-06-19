@@ -5,7 +5,7 @@ using Unitful
 ModiaResult.@usingModiaPlot
 
 tr = [0.0, 15.0]
-t0 = (tr, tr, ModiaResult.TimeSignal)
+t0 = (tr, tr, ModiaResult.Independent)
 t1 = (0.0  : 0.1 : 15.0)
 t2 = (0.0  : 0.1 : 3.0)
 t3 = (5.0  : 0.3 : 9.5)
@@ -31,7 +31,7 @@ result = ModiaResult.ResultDict("time" => t0,
                                 hasOneTimeSignal = false)  
 
 println("\n... test_72_ResultDictWithMatrixOfPlots.jl:\n")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
 

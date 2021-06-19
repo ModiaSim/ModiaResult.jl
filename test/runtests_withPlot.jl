@@ -5,7 +5,7 @@ module Runtests_withPlot
 import ModiaResult
 using Test
 
-const  test_title = "Tests with plot package " * ModiaResult.activated()
+const  test_title = "Tests with plot package " * ModiaResult.currentPlotPackage()
 
 @testset "$test_title" begin
     include("include_all.jl")

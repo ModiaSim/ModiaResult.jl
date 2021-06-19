@@ -219,7 +219,6 @@ end
 function addPlot(names::Tuple, diagram::Diagram, result, grid::Bool, xLabel::Bool, xAxis, 
                  prefix::AbstractString, reuse::Bool, maxLegend::Integer, MonteCarloAsArea::Bool)
     xsigLegend = ""
-    xAxis2 = string(xAxis)
     yLegend = String[]
     curves  = Any[]
 
@@ -227,24 +226,8 @@ function addPlot(names::Tuple, diagram::Diagram, result, grid::Bool, xLabel::Boo
     
     for name in names
         name2 = string(name)
-        (xsig2, xsigLegend, ysig2, ysigLegend, ysigType) = ModiaResult.getPlotSignal(result, xAxis2, name2)           
-        if !isnothing(xsig2)
-            xsig = xsig2[1]
-            ysig = ysig2[1]
-            if length(xsig2) > 1
-                xNaN = convert(eltype(xsig), NaN)
-                if ndims(ysig) == 1
-                    yNaN = convert(eltype(ysig), NaN)               
-                else
-                    yNaN = fill(convert(eltype(ysig), NaN), 1, size(ysig,2))
-                end
-                   
-                for i = 2:length(xsig2)
-                    xsig = vcat(xsig, xNaN, xsig2[i])
-                    ysig = vcat(ysig, yNaN, ysig2[i])
-                end
-            end            
-        
+        (xsig, xsigLegend, ysig, ysigLegend, ysigType) = ModiaResult.getPlotSignal(result, name2; xsigName = xAxis)
+        if !isnothing(xsig)
             if ndims(ysig) == 1
                 push!(yLegend, prefix*ysigLegend[1])
                 push!(curves, plotOneSignal(diagram.axis, xsig, ysig, getColor(i0+1), ysigType, MonteCarloAsArea))  
@@ -283,7 +266,7 @@ addPlot(name::Symbol        , args...) = addPlot((string(name),), args...)
 
 #--------------------------- Plot function
 
-function plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true, xAxis="time", 
+function plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true, xAxis=nothing, 
               figure::Int=1, prefix::AbstractString="", reuse::Bool=false, maxLegend::Integer=10, 
               minXaxisTickLabels::Bool=false, MonteCarloAsArea=false)
     if isnothing(result)
@@ -299,7 +282,7 @@ function plot(result, names::AbstractMatrix; heading::AbstractString="", grid::B
     (nrow, ncol)  = size(names)
     matrixFigure  = MatrixFigure(figure, nrow, ncol, reuse, (min(ncol*600,1500), min(nrow*350, 900))) 
     fig           = matrixFigure.fig
-    xAxis2        = string(xAxis)
+    xAxis2        = isnothing(xAxis) ? xAxis : string(xAxis)    
     heading2      = ModiaResult.getHeading(result, heading)
     hasTopHeading = !reuse && ncol > 1 && heading2 != ""
     

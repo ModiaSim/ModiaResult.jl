@@ -22,7 +22,7 @@ result["phi2"] = [sin(t[i]) + particles2*t[i]/10.0 for i in eachindex(t)]*u"rad"
 result["phi3"] = [sin(t[i]) ∓ 0.4*t[i]/10.0        for i in eachindex(t)]*u"rad"
 
 println("\n... test_52_MonteCarloMeasurementsWithDistributions:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, ["phi1", "phi2", "phi3"], figure=1,
      heading="Sine(time) with MonteCarloParticles/StaticParticles (plot area)")

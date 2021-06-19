@@ -11,7 +11,7 @@ The following example defines a simple line plot of a sine wave:
 import ModiaResult
 
 # Define plotting software globally
-ModiaResult.activate("GLMakie") # or ENV["MODIA_PLOT"] = "GLMakie"
+ModiaResult.usePlotPackage("GLMakie") # or ENV["MODIA_PLOT"] = "GLMakie"
 
 # Define result data structure
 t = range(0.0, stop=10.0, length=100)
@@ -36,7 +36,7 @@ import ModiaResult
 using  Unitful
 
 # Define plotting software globally
-ModiaResult.activate("PyPlot") # or ENV["MODIA_PLOT"] = "PyPlot"
+ModiaResult.usePlotPackage("PyPlot") # or ENV["MODIA_PLOT"] = "PyPlot"
 
 # Define result data structure
 t0 = ([0.0, 15.0], [0.0, 15.0], ModiaResult.TimeSignal)
@@ -80,13 +80,20 @@ Typically, `runtests.jl` of a simulation package should utilize `SilentNoPlot` t
 tests without using a plot package:
 
 ```julia
-# File runtests.jl
+module Runtests   # File runtests.jl
+
 import ModiaResult
-ModiaResult.activate("SilentNoPlot") # stores current plot package on a stack
+using  Test
 
-< run all tests >
+@testset "My Tests" begin
+    ModiaResult.usePlotPackage("SilentNoPlot") # stores current plot package on a stack
 
-ModiaResult.activatePrevious() # retrieves previous plot package from stack
+    < run all tests >
+
+    ModiaResult.usePreviousPlotPackage() # retrieves previous plot package from stack
+end
+
+end
 ```
 
 

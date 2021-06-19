@@ -4,55 +4,18 @@
 # This file is part of module ModiaResult (is included by the ModiaPlot_xxxMakie packages).
 
 
-"""
-    resultInfo(result)
-    
-Return information about the result as DataFrames.DataFrame object
-with columns:
-
-```julia
-name::String, unit::String, nTime::String, signalType::String, valueSize::String, eltype::String
-```
-"""
-resultInfo(result) = ModiaResult.info(result)
 
 
-
-"""
-    showResultInfo(result)
-    
-Display info about result.
-
-# Example
-```julia
-using ModiaResult
-using Unitful
-ModiaResult.@usingModiaPlot
-
-t = range(0.0, stop=10.0, length=100)
-result = OrderedDict{String,Any}("time"=> t*u"s", "phi" => sin.(t)*u"rad")
-showResultInfo(result)
-
-# Gives output:
- # │ name  unit  nTime  signalType  valueSize  eltype  
-───┼───────────────────────────────────────────────────
- 1 │ time  s     100    TimeSignal  ()         Float64
- 2 │ phi   rad   100    Continuous  ()         Float64
-``` 
-"""
-showResultInfo(result) = ModiaResult.showInfo(result)
-
-    
 """
     plot(result, names; 
-         heading = "", grid = true, xAxis = "time",
+         heading = "", grid = true, xAxis = nothing,
          figure = 1, prefix = "", reuse = false, maxLegend = 10,
          minXaxisTickLabels = false,
          MonteCarloAsArea = true)
 
 Generate **line plots** of the signals of the `result` data structure that are
 identified with the `names` keys using the plot package defined with
-`ModiaResult.@activate(xxx)`. Possible values for `xxx`:
+`ModiaResult.@usePlotPackage(xxx)`. Possible values for `xxx`:
 `"GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot", "SilentNoPlot"`).
 
 `result` is any data structures that supports the abstract interface of `ModiaResult`. 
@@ -91,7 +54,8 @@ and `MonteCarloMeasurements` is specially handled.
 
 - `grid::Bool`: = true, to display a grid.
 
-- `xAxis::AbstractString`: Name of x-axis.
+- `xAxis::Union{AbstractString,Nothing}`: Name of x-axis. If `xAxis=nothing`, the independent variable
+  of the result (usually `"time"` is used as x-axis.
 
 - `figure::Int`: Integer identifier of the window in which the diagrams shall be drawn.
 
@@ -124,7 +88,7 @@ import ModiaResult
 using  Unitful
 
 # Generate "using xxx" statement 
-# (where "xxx" is from a previous ModiaResult.activate("xxx"))
+# (where "xxx" is from a previous ModiaResult.usePlotPackage("xxx"))
 ModiaResult.@usingModiaPlot
 
 # Construct result data

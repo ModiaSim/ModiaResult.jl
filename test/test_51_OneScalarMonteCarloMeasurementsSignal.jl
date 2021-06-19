@@ -15,7 +15,7 @@ result["time"] = t*u"s"
 result["phi"]  = [sin(t[i]) ± 0.1*c[i]  for i in eachindex(t)]*u"rad"
 
 println("\n... test_51_OneScalarMonteCarloMeasurementsSignal:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, "phi", MonteCarloAsArea=true, heading="Sine(time) with MonteCarloMeasurements")
 

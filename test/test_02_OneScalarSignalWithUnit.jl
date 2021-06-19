@@ -13,7 +13,7 @@ result["time"] = t*u"s"
 result["phi"]  = sin.(t)*u"rad"
 
 println("\n... test_02_OneScalarSignalWithUnit.jl:\n")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, "phi", heading="Sine(time)")
 

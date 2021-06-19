@@ -10,10 +10,10 @@ result2 = DataFrames.DataFrame(result1)
 
 println("\n... test_71_Tables_Rotational_First.jl:")
 println("CSV-Table (result1 = CSV.File(fileName)):\n")
-ModiaResult.showInfo(result1)
+ModiaResult.printResultInfo(result1)
 
 println("\nDataFrame-Table (result2 = DataFrame(result1)):\n")
-ModiaResult.showInfo(result2)
+ModiaResult.printResultInfo(result2)
 
 plot(result1, ["damper.w_rel", "inertia3.w"], prefix="result1: ")
 plot(result2, ["damper.w_rel", "inertia3.w"], prefix="result2: ", reuse=true)

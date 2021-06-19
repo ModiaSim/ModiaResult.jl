@@ -16,7 +16,7 @@ result["w"]    = cos.(t)u"rad/s"
 result["w2"]   = 0.6 * cos.(t)u"rad/s"
 
 println("\n... test_21_VectorOfPlots:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, ["phi2", ("w",), ("phi", "phi2", "w", "w2")], heading="Vector of plots")
 

@@ -1,5 +1,9 @@
 # ModiaResult Documentation
 
+```@meta
+CurrentModule = ModiaResult
+```
+
 Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines 
 an abstract interface for **simulation results** and provides overloaded methods for:
 
@@ -9,7 +13,7 @@ an abstract interface for **simulation results** and provides overloaded methods
 
 - [Tables](https://github.com/JuliaData/Tables.jl) (for example [CSV](https://github.com/JuliaData/CSV.jl)), and
 
-- ModiaResult.ResultDict (special dictionary with all features of the interface). 
+- [`ModiaResult.ResultDict`](@ref) (special dictionary with all features of the interface). 
 
 Additionally, **operations** on simulation results are provided, especially to produce **line plots**
 in a **convenient way** based on 
@@ -31,25 +35,14 @@ More details:
 
 ## Installation
 
-ModiaResult is registered. The accompanying plot packages are currently being registered.
-During this phase, the packages are installed as (Julia >= 1.5 is required):
-
-```julia
-julia> ]add ModiaResult,
-        add https://github.com/ModiaSim/ModiaPlot_GLMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_WGLMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_CairoMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_PyPlot.jl
-```
-
-Once all packages are registered, install the packages with:
+All packages are registered and are installed with:
 
 ```julia
 julia> ]add ModiaResult
-        add ModiaPlot_GLMakie
-        add ModiaPlot_WGLMakie
-        add ModiaPlot_CairoMakie
-        add ModiaPlot_PyPlot
+        add ModiaPlot_GLMakie       # if plotting with GLMakie
+        add ModiaPlot_WGLMakie      # if plotting with WGLMakie
+        add ModiaPlot_CairoMakie    # if plotting with CairoMakie
+        add ModiaPlot_PyPlot        # if plotting with PyPlot
 ```
 
 
@@ -78,7 +71,7 @@ try to first install a standard Python installation from Julia:
 # Start a new Julia session
 ENV["PYTHON"] = ""    # Let Julia install Python
 ]build PyCall
-# Exit Juila
+exit()   # Exit Juila
 
 # Start a new Julia session
 ]add PyPlot
@@ -114,24 +107,25 @@ you might utilize the following approach.
    <path-to-Anaconda3>\Anaconda3\condabin
    ```
    and start julia by calling `julia`
-  
-
 2. Include the path to the Python executable in your startup file\
    (`<path-to-user>/.julia/config/startup.jl`):\
     `ENV["PYTHON"] = "<path-above-Anaconda3>/Anaconda3/python.exe"`.
-
 3. Start Julia, give the command `ENV["PYTHON"]` in the REPL, and check whether the path
    is correct (if you made a typo in the startup file, Julia might use another
    Python executable and PyPlot might crash Julia).
-
 4. If you have used a different Python installation before, execute the command
    `]build PyCall` (or `using Pkg; Pkg.build("PyCall")`, exit Julia and start Julia again.
-
 5. Install PyPlot via `]add PyPlot` (or `using Pkg; Pkg.add("PyPlot")`)
 
 
 
 ## Release Notes
+
+
+### Version 0.3
+
+- Major clean-up of the function interfaces. This version is not backwards compatible to previous versions.
+
 
 ### Version 0.2.2
 

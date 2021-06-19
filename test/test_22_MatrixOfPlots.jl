@@ -19,7 +19,7 @@ result["r"]    = [[0.4 * cos(t[i]),
                    0.3 * cos(t[i])] for i in eachindex(t)]*u"m"
 
 println("\n... test_22_MatrixOfPlots:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, [ ("phi", "r")        ("phi", "phi2", "w");
                ("w", "w2", "phi2") "w"                 ], heading="Matrix of plots")

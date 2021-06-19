@@ -19,11 +19,11 @@ const ModiaPlotPackagesStack = String[]
 
 
 """
-    activate(plotPackage::String)
+    usePlotPackage(plotPackage::String)
     
 Define the ModiaPlot package that shall be used by command `ModiaResult.@usingModiaPlot`.
 If a ModiaPlot package is already defined, save it on an internal stack
-(can be reactivated with `activatePrevious()`.
+(can be reactivated with `usePreviousPlotPackage()`.
 
 Possible values for `plotPackage`:
 - `"GLMakie"`
@@ -38,7 +38,7 @@ Possible values for `plotPackage`:
 ```julia
 import ModiaResult
 
-ModiaResult.activate("GLMakie")
+ModiaResult.usePlotPackage("GLMakie")
 
 module MyTest
     ModiaResult.@usingModiaPlot
@@ -50,7 +50,7 @@ module MyTest
 end
 ```
 """
-function activate(plotPackage::String; pushPreviousOnStack=true)::Bool
+function usePlotPackage(plotPackage::String; pushPreviousOnStack=true)::Bool
     success = true
     if plotPackage == "NoPlot" || plotPackage == "SilentNoPlot"
         if  pushPreviousOnStack && haskey(ENV, "MODIA_PLOT")
@@ -71,11 +71,11 @@ function activate(plotPackage::String; pushPreviousOnStack=true)::Bool
                 end
                 ENV["MODIA_PLOT"] = plotPackage
             else
-                @warn "... activate(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
+                @warn "... usePlotPackage(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
                 success = false
             end
         else
-            @warn "\n... activate(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
+            @warn "\n... usePlotPackage(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
             success = false
         end
     end
@@ -85,17 +85,17 @@ end
 
 
 """
-    activatePrevious()
+    usePreviousPlotPackage()
     
 Pop the last saved ModiaPlot package from an internal stack
-and call `activate(<popped ModiaPlot package>)`.
+and call `usePlotPackage(<popped ModiaPlot package>)`.
 """
-function activatePrevious()::Bool
+function usePreviousPlotPackage()::Bool
     if length(ModiaPlotPackagesStack) > 0
         plotPackage = pop!(ModiaPlotPackagesStack)
-        success = activate(plotPackage, pushPreviousOnStack=false)
+        success = usePlotPackage(plotPackage, pushPreviousOnStack=false)
     else
-        @warn "activatePrevious(): Call ignored, because nothing saved."
+        @warn "usePreviousPlotPackage(): Call ignored, because nothing saved."
         success = false
     end
     return success
@@ -103,12 +103,14 @@ end
 
 
 """
-    activated()
+    currentPlotPackage()
     
-Return the name of the activated plot package as a string (e.g. return "GLMakie" or "PyPlot")
-or "", if no PlotPackage is defined
+Return the name of the plot package as a string that was
+defined with [`usePlotPackage`](@ref).
+For example, the function may return "GLMakie", "PyPlot" or "NoPlot" or
+or "", if no PlotPackage is defined.
 """
-activated() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
+currentPlotPackage() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
 
 
 
@@ -116,7 +118,7 @@ activated() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
     @usingModiaPlot()
     
 Execute `using XXX`, where `XXX` is the ModiaPlot package that was
-activated with `activate(plotPackage)`.
+activated with `usePlotPackage(plotPackage)`.
 """
 macro usingModiaPlot()
     if haskey(ENV, "MODIA_PLOT")
@@ -127,7 +129,7 @@ macro usingModiaPlot()
         elseif ModiaPlotPackage == "NoPlot"
             @goto USE_NO_PLOT
         elseif ModiaPlotPackage == "SilentNoPlot"
-            expr = :( import ModiaResult.SilentNoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures, resultInfo, showResultInfo )
+            expr = :( import ModiaResult.SilentNoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
             return esc( expr )           
         else
             ModiaPlotPackage = Symbol("ModiaPlot_" * ModiaPlotPackage)
@@ -142,22 +144,26 @@ macro usingModiaPlot()
     end
     
     @label USE_NO_PLOT
-    expr = :( import ModiaResult.NoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures, resultInfo, showResultInfo )
+    expr = :( import ModiaResult.NoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
     println("$expr")
     return esc( expr )
 end
 
 
-const signalTypeToString = ["TimeSignal", "Continuous", "Clocked"]
+const signalTypeToString = ["Independent", "Continuous", "Clocked"]
 
 
 """
-    info(result)
-    
-Return names, units, signal types, values sizes, and element types
-of the signals that are stored in result as DataFrame table.
+    resultInfo(result)
+
+Return information about the result as DataFrames.DataFrame object
+with columns:
+
+```julia
+name::String, unit::String, nTime::String, signalType::String, valueSize::String, eltype::String
+```
 """
-function info(result)
+function resultInfo(result)
     if isnothing(result)
         @info "The call of showInfo(result) is ignored, since the argument is nothing."
         return
@@ -166,7 +172,7 @@ function info(result)
     resultInfoTable = DataFrames.DataFrame(name=String[], unit=String[], nTime=String[], signalType=String[], valueSize=String[], eltype=String[])
 
     timeSigName = timeSignalName(result)
-    for name in names(result)
+    for name in signalNames(result)
         (signalType, nTime, valueSize, elType, sigUnit) = signalInfo(result, name)
         if isnothing(elType)
             sigUnit2    = "???"
@@ -192,13 +198,30 @@ end
 
 
 """
-    showInfo(result)
+    printResultInfo(result)
     
-Print names, units, signal types, values sizes, and element types
-of the signals that are stored in result as DataFrame table.
+Print info about result.
+
+# Example
+```julia
+using ModiaResult
+using Unitful
+ModiaResult.@usingModiaPlot
+
+t = range(0.0, stop=10.0, length=100)
+result = OrderedDict{String,Any}("time"=> t*u"s", "phi" => sin.(t)*u"rad")
+printResultInfo(result)
+
+# Gives output:
+ # │ name  unit  nTime  signalType  valueSize  eltype  
+───┼───────────────────────────────────────────────────
+ 1 │ time  s     100    Independent ()         Float64
+ 2 │ phi   rad   100    Continuous  ()         Float64
+``` 
+
 """
-function showInfo(result)::Nothing
-    resultInfoTable = info(result)
+function printResultInfo(result)::Nothing
+    resultInfoTable = resultInfo(result)
     show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)   
     println(stdout)    
     return nothing
@@ -226,7 +249,7 @@ Return a new ResultDict dictionary (is based on DataStructures.OrderedDict).
 using ModiaResult
 
 time0 = [0.0, 7.0]
-t     = ([time0], [time0], ModiaResult.TimeSignal)
+t     = ([time0], [time0], ModiaResult.Independent)
 
 time1 = 0.0 : 0.1  : 2.0
 time2 = 3.0 : 0.01 : 3.5
@@ -391,7 +414,7 @@ end
 
 
 """
-    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = getSignal(result, name)
+    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = getSignalDetails(result, name)
     
 Return the signal defined by `name::AbstractString` as
 `signal::Vector{Matrix{<:Real}}`.
@@ -419,7 +442,7 @@ The following `Real` types are currently supported:
 
 4. MonteCarloMeasurements.Particles{<Type of (1)>}.
 """
-function getSignal(result, name::AbstractString)
+function getSignalDetails(result, name::AbstractString)
     sigPresent = false
     if hasSignal(result, name)
         (timeSig, sig2, sigType) = rawSignal(result, name)
@@ -513,8 +536,8 @@ end
     
 Call getSignal(result,name) and print a warning message if `signal == nothing`
 """
-function getSignalWithWarning(result,name::AbstractString)
-    (sig, timeSig, timeSigName, sigType, arrayName, arrayIndices, nScalarSignals) = getSignal(result,name)
+function getSignalDetailsWithWarning(result,name::AbstractString)
+    (sig, timeSig, timeSigName, sigType, arrayName, arrayIndices, nScalarSignals) = getSignalDetails(result,name)
     if isnothing(sig)
         @warn "\"$name\" is not correct or is not defined or has no values."
     end
@@ -536,36 +559,49 @@ end
 
 
 """
-    (xsig, xsigLegend, ysig, ysigLegend, ysigType) = getPlotSignal(result, xsigName, ysigName)
+    (xsig, xsigLegend, ysig, ysigLegend, ysigType) = getPlotSignal(result, ysigName; xsigName=nothing)
 
-Given the name of the signal used for the x-axis (`xsigName::AbstractString`)
-and the name used for the y-axis (`ysigName::AbstractString`), return
+Given the result data structure `result` and a variable `ysigName::AbstractString` with
+or without array range indices (for example `ysigName = "a.b.c[2,3:5]"`) and an optional
+variable name `xsigName::AbstractString` for the x-axis, return 
 
-- `xsig::Vector{Vector{Matrix{Real}}}`: the x-axis signal (the matrix has one column)
+- `xsig::Vector{T1<:Real}`: The vector of the x-axis signal without a unit. Segments are concatenated 
+  and separated by NaN.
 
-- `ysig::Vector{Vector{Matrix{Real}}}`: the y-axis signal.
+- `xsigLegend::AbstractString`: The legend of the x-axis consisting of the x-axis name
+  and its unit (if available).
 
-- `xsigLegend::AbstractString`: the legend of the x-axis signal.
+- `ysig::Vector{T2}` or `::Matrix{T2}`: the y-axis signal, either as a vector or as a matrix
+  of values without units depending on the given name. For example, if `ysigName = "a.b.c[2,3:5]"`, then
+  `ysig` consists of a matrix with three columns corresponding to the variable values of
+  `"a.b.c[2,3]", "a.b.c[2,4]", "a.b.c[2,5]"` with the (potential) units are stripped off.
+  Segments are concatenated and separated by NaN.
 
-- `ysigLegend::Vector{AbstractString}`: the legend of the y-axis signal as String vector,
+- `ysigLegend::Vector{AbstractString}`: The legend of the y-axis as a vector
+  of strings, where `ysigLegend[1]` is the legend for `ysig`, if `ysig` is a vector,
+  and `ysigLegend[i]` is the legend for the i-th column of `ysig`, if `ysig` is a matrix.
+  For example, if variable `"a.b.c"` has unit `m/s`, then `ysigName = "a.b.c[2,3:5]"` results in
+  `ysigLegend = ["a.b.c[2,3] [m/s]", "a.b.c[2,3] [m/s]", "a.b.c[2,5] [m/s]"]`.
 
-- `ysigType::ModiaResult.SignalType`: Type of signal `ysig`.
- 
-xsig[i][j,1] are the x-values at time instant `j` of segment `i`
- 
-ysig[i][j,:] are the (flattened) array values at time instant `j` of segment `i`.
+- `ysigType::`[`SignalType`](@ref): The signal type of `ysig` (either `ModiaResult.Continuous`
+  or `ModiaResult.Clocked`).
+  
+If `ysigName` is not valid, or no signal values are available, the function returns 
+`(nothing, nothing, nothing, nothing, nothing)`, and prints a warning message.
 """      
-function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractString)
-    (ysig, xsig, timeSigName, ysigType, ysigArrayName, ysigArrayIndices, nysigScalarSignals) = getSignalWithWarning(result, ysigName)
-    
+function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
+    (ysig, xsig, timeSigName, ysigType, ysigArrayName, ysigArrayIndices, nysigScalarSignals) = getSignalDetailsWithWarning(result, ysigName)
+       
     # Check y-axis signal and time signal
     if isnothing(ysig) || isnothing(xsig) || isnothing(timeSigName)  || signalLength(ysig) == 0
         @goto ERROR   
-    end   
-    
-    # Get x-axis signal if xsig is no time signal
-    if xsigName != timeSigName 
-        (xsig, xsigTime, xsigTimeName, xsigType, xsigArrayName, xsigArrayIndices, nxsigScalarSignals) = getSignalWithWarning(result, xsigName)
+    end    
+
+    # Get xSigName or check xSigName
+    if isnothing(xsigName)
+        xsigName = timeSigName
+    elseif xsigName != timeSigName
+        (xsig, xsigTime, xsigTimeName, xsigType, xsigArrayName, xsigArrayIndices, nxsigScalarSignals) = getSignalDetailsWithWarning(result, xsigName)
         if isnothing(xsig) || isnothing(xsigTime) || isnothing(xsigTimeName) || signalLength(xsig) == 0
             @goto ERROR
         elseif !hasSameSegments(ysig, xsig)
@@ -573,9 +609,9 @@ function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractStrin
             @goto ERROR                
         end
     end 
-
+    
     # Check x-axis signal
-    xsigValue = xsig[1][1]
+    xsigValue = first(first(xsig))
     if length(xsigValue) != 1
         @warn "\"$xsigName\" does not characterize a scalar variable as needed for the x-axis."
         @goto ERROR
@@ -597,7 +633,7 @@ function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractStrin
     xsigLegend = appendUnit(xsigName, xsigValue)
 
     # Get one segment of the y-axis and check it
-    ysegment1 = ysig[1]
+    ysegment1 = first(ysig)
     if !( typeof(ysegment1) <: AbstractVector || typeof(ysegment1) <: AbstractMatrix )
         @error "Bug in function: typeof of an y-axis segment is neither a vector nor a Matrix, but " * string(typeof(ysegment1)) 
     elseif !(eltype(ysegment1) <: Number)
@@ -642,12 +678,29 @@ function getPlotSignal(result, xsigName::AbstractString, ysigName::AbstractStrin
         end
     end
            
-    xsig2 = Vector{Any}(undef, length(xsig))
-    ysig2 = Vector{Any}(undef, length(ysig))
-    for i = 1:length(xsig)
-        xsig2[i] = collect(ustrip.(xsig[i]))
-        ysig2[i] = collect(ustrip.(ysig[i]))
+    #xsig2 = Vector{Any}(undef, length(xsig))
+    #ysig2 = Vector{Any}(undef, length(ysig))
+    #for i = 1:length(xsig)
+    #    xsig2[i] = collect(ustrip.(xsig[i]))
+    #    ysig2[i] = collect(ustrip.(ysig[i]))
+    #end
+    
+    xsig2 = collect(ustrip.(first(xsig)))
+    ysig2 = collect(ustrip.(first(ysig)))
+    if length(xsig) > 1
+        xNaN = convert(eltype(xsig2), NaN)
+        if ndims(ysig2) == 1
+            yNaN = convert(eltype(ysig2), NaN)               
+        else
+            yNaN = fill(convert(eltype(ysig2), NaN), 1, size(ysig2,2))
+        end
+           
+        for i = 2:length(xsig)
+            xsig2 = vcat(xsig2, xNaN, collect(ustrip.(xsig[i])))
+            ysig2 = vcat(ysig2, yNaN, collect(ustrip.(ysig[i])))
+        end
     end
+            
     return (xsig2, xsigLegend, ysig2, ysigLegend, ysigType)
     
     @label ERROR

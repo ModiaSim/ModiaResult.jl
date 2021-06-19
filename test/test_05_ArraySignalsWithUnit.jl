@@ -17,7 +17,7 @@ result["time"]     = t*u"s"
 result["Inertia"]  = [Ibase*t[i] for i in eachindex(t)]
 
 println("\n... test_05_ArraySignalsWithUnit:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, ["Inertia[2,2]", "Inertia[2:3,3]"], heading="Array signals")
 

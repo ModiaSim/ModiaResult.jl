@@ -5,12 +5,10 @@ module Runtests
 import ModiaResult
 using Test
 
-ModiaResult.activate("SilentNoPlot")
-
 @testset "Test ModiaResult/test" begin
+    ModiaResult.usePlotPackage("SilentNoPlot")
     include("include_all.jl")
+    ModiaResult.usePreviousPlotPackage()
 end
-
-ModiaResult.activatePrevious()
 
 end

@@ -15,7 +15,7 @@ result["time"] = t
 result["phi"]  = [sin(t[i]) ± 0.1*c[i]  for i in eachindex(t)]
 
 println("\n... test_06_OneScalarMeasurementSignal.jl:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, "phi", heading="Sine(time) with Measurement")
 

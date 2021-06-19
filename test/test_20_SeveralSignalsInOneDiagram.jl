@@ -16,7 +16,7 @@ result["w"]    = cos.(t)u"rad/s"
 result["w2"]   = 0.6 * cos.(t)u"rad/s"
 
 println("\n... test_20_SeveralSignalsInOneDiagram:")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, ("phi", "phi2", "w", "w2"), heading="Several signals in one diagram")
 

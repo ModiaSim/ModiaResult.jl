@@ -24,7 +24,7 @@ result["emptySignal"]     = Float64[]
 result["wrongSizeSignal"] = sin.(t2)u"rad"
 
 println("\n... test_40_Warnings")
-ModiaResult.showInfo(result)
+ModiaResult.printResultInfo(result)
 
 plot(result, ("phi", "r", "signalNotDefined"), heading="Plot with warning 1" , figure=1)
 plot(result, ("signalNotDefined",

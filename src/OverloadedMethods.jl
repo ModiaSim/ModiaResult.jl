@@ -18,8 +18,8 @@ import DataStructures
 
 # Overloaded methods for AbstractDict{String,T}
 ModiaResult.rawSignal(       result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = ([result["time"]], [result[name]], 
-                                                                                                            name == "time" ? ModiaResult.TimeSignal : ModiaResult.Continuous)
-ModiaResult.names(           result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
+                                                                                                            name == "time" ? ModiaResult.Independent : ModiaResult.Continuous)
+ModiaResult.signalNames(     result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
 ModiaResult.timeSignalName(  result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = "time" 
 ModiaResult.hasOneTimeSignal(result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = true
 ModiaResult.hasSignal(       result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = haskey(result, name)
@@ -28,7 +28,7 @@ ModiaResult.hasSignal(       result::AbstractDict{T1,T2}, name::String) where {T
 
 # Overloaded methods for ModiaResult.ResultDict
 ModiaResult.rawSignal(       result::ResultDict, name::String) = result.dict[name]
-ModiaResult.names(           result::ResultDict)               = collect(keys(result.dict))
+ModiaResult.signalNames(     result::ResultDict)               = collect(keys(result.dict))
 ModiaResult.timeSignalName(  result::ResultDict)               = "time"
 ModiaResult.hasOneTimeSignal(result::ResultDict)               = result.hasOneTimeSignal
 ModiaResult.hasSignal(       result::ResultDict, name::String) = haskey(result.dict, name)
@@ -37,27 +37,27 @@ ModiaResult.defaultHeading(  result::ResultDict)               = result.defaultH
 
 
 # Overloaded methods for DataFrames
-ModiaResult.rawSignal(       result::DataFrames.DataFrame, name::AbstractString) = ([result[!,1]], [result[!,name]], ModiaResult.Continuous)
-ModiaResult.names(           result::DataFrames.DataFrame) = DataFrames.names(result)
 ModiaResult.timeSignalName(  result::DataFrames.DataFrame) = DataFrames.names(result, 1)[1]
 ModiaResult.hasOneTimeSignal(result::DataFrames.DataFrame) = true
+ModiaResult.rawSignal(       result::DataFrames.DataFrame, name::AbstractString) = ([result[!,1]], [result[!,name]], name == timeSignalName(result) ? ModiaResult.Independent : ModiaResult.Continuous)
+ModiaResult.signalNames(     result::DataFrames.DataFrame) = DataFrames.names(result)
  
 
  
 # Overloaded methods for Tables
 function ModiaResult.rawSignal(result, name::AbstractString)
     if Tables.istable(result) && Tables.columnaccess(result)
-        return ([Tables.getcolumn(result, 1)], [Tables.getcolumn(result, Symbol(name))], ModiaResult.Continuous)
+        return ([Tables.getcolumn(result, 1)], [Tables.getcolumn(result, Symbol(name))], string(Tables.columnnames(result)[1]) == name ? ModiaResult.Independent : ModiaResult.Continuous)
     else
-        @error "ModiaResult.rawSignal(result, \"$name\") is not supported for typeof(result) = " * string(typeof(result))
+        @error "rawSignal(result, \"$name\") is not supported for typeof(result) = " * string(typeof(result))
     end
 end
 
-function ModiaResult.names(result)
+function ModiaResult.signalNames(result)
     if Tables.istable(result) && Tables.columnaccess(result)
         return string.(Tables.columnnames(result))
     else
-        @error "ModiaResult.names(result) is not supported for typeof(result) = " * string(typeof(result))
+        @error "signalNames(result) is not supported for typeof(result) = " * string(typeof(result))
     end
 end
 
@@ -65,7 +65,7 @@ function ModiaResult.timeSignalName(result)
     if Tables.istable(result) && Tables.columnaccess(result)
         return string(Tables.columnnames(result)[1])
     else
-        @error "ModiaResult.timeSignalName(result) is not supported for typeof(result) = " * string(typeof(result))
+        @error "timeSignalName(result) is not supported for typeof(result) = " * string(typeof(result))
     end
 end
 
@@ -73,6 +73,6 @@ function ModiaResult.hasOneTimeSignal(result)
     if Tables.istable(result) && Tables.columnaccess(result)
         return true
     else
-        @error "ModiaResult.hasOneTimeSignal(result) is not supported for typeof(result) = " * string(typeof(result))
+        @error "hasOneTimeSignal(result) is not supported for typeof(result) = " * string(typeof(result))
     end
 end
