@@ -39,10 +39,10 @@ All packages are registered and are installed with:
 
 ```julia
 julia> ]add ModiaResult
-        add ModiaPlot_GLMakie       # if plotting with GLMakie
-        add ModiaPlot_WGLMakie      # if plotting with WGLMakie
-        add ModiaPlot_CairoMakie    # if plotting with CairoMakie
-        add ModiaPlot_PyPlot        # if plotting with PyPlot
+        add ModiaPlot_GLMakie       # if plotting with GLMakie desired
+        add ModiaPlot_WGLMakie      # if plotting with WGLMakie desired
+        add ModiaPlot_CairoMakie    # if plotting with CairoMakie desired
+        add ModiaPlot_PyPlot        # if plotting with PyPlot desired
 ```
 
 

@@ -24,101 +24,50 @@ Additionally, **operations** on simulation results are provided, especially to p
 - NoPlot (= all plot calls are ignored; NoPlot is a module in ModiaResult), or
 - SilentNoPlot (= NoPlot without messages; SilentNoPlot is a module in ModiaResult).
 
+More details:
+
+- [Getting Started](https://modiasim.github.io/ModiaResult.jl/stable/GettingStarted.html)
+- [Functions](https://modiasim.github.io/ModiaResult.jl/stable/Functions.html)
+- [Abstract Interface](https://modiasim.github.io/ModiaResult.jl/stable/AbstractInterface.html)
+
 
 ## Installation
 
-ModiaResult is registered. The accompanying plot packages are currently being registered.
-During this phase, the packages are installed as (Julia >= 1.5 is required):
-
-```julia
-julia> ]add ModiaResult,
-        add https://github.com/ModiaSim/ModiaPlot_GLMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_WGLMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_CairoMakie.jl
-        add https://github.com/ModiaSim/ModiaPlot_PyPlot.jl
-```
-
-Once all packages are registered, install the packages with:
+All packages are registered and are installed with:
 
 ```julia
 julia> ]add ModiaResult
-        add ModiaPlot_GLMakie
-        add ModiaPlot_WGLMakie
-        add ModiaPlot_CairoMakie
-        add ModiaPlot_PyPlot
+        add ModiaPlot_GLMakie       # if plotting with GLMakie desired
+        add ModiaPlot_WGLMakie      # if plotting with WGLMakie desired
+        add ModiaPlot_CairoMakie    # if plotting with CairoMakie desired
+        add ModiaPlot_PyPlot        # if plotting with PyPlot desired
 ```
 
-
-## Examples
-
-The following example defines a simple line plot of a sine wave:
-
-```julia
-import ModiaResult
-
-# Define plotting software globally
-ModiaResult.activate("GLMakie") # or ENV["MODIA_PLOT"] = "GLMakie"
-
-# Define result data structure
-t = range(0.0, stop=10.0, length=100)
-result = Dict("time" => t, "phi" => sin.(t))
-
-# Generate line plot
-ModiaResult.@usingModiaPlot  # = "using ModiaPlot_GLMakie"
-plot(result, "phi", heading = "Sine(time)")
-```
-Executing this code results in the following plot:
-
-![SinePlot](docs/resources/images/sine-plot.png)
-
-A more complex example is shown in the next definition, where the signals have units, are scalars and vectors, have different time axes and are not always defined over the complete time range.
+If you have trouble installing `ModiaPlot_PyPlot`, see 
+[Installation of PyPlot.jl](https://modiasim.github.io/ModiaResult.jl/stable/index.html#Installation-of-PyPlot.jl)
  
+ 
+## Example
+
+Assume that the result data structure is available, then the following commands
+
 
 ```julia
 import ModiaResult
-using  Unitful
 
 # Define plotting software globally
 ModiaResult.activate("PyPlot") # or ENV["MODIA_PLOT"] = "PyPlot"
 
-# Define result data structure
-t0 = ([0.0, 15.0], [0.0, 15.0], ModiaResult.TimeSignal)
-t1 = 0.0  : 0.1 : 15.0
-t2 = 0.0  : 0.1 : 3.0
-t3 = 5.0  : 0.3 : 9.5
-t4 = 11.0 : 0.1 : 15.0
-
-sigA1 = 0.9*sin.(t2)u"m"
-sigA2 =     cos.(t3)u"m"
-sigA3 = 1.1*sin.(t4)u"m"
-R2    = [[0.4 * cos(t), 0.5 * sin(t), 0.3 * cos(t)] for t in t2]u"m"
-R4    = [[0.2 * cos(t), 0.3 * sin(t), 0.2 * cos(t)] for t in t4]u"m"
-
-sigA  = ([t2,t3,t4], [sigA1,sigA2,sigA3 ], ModiaResult.Continuous)
-sigB  = ([t1]      , [0.7*sin.(t1)u"m/s"], ModiaResult.Continuous)
-sigC  = ([t3]      , [sin.(t3)u"N*m"]    , ModiaResult.Clocked)
-r     = ([t2,t4]   , [R2,R4]             , ModiaResult.Continuous)
-    
-result = ModiaResult.ResultDict("time" => t0, 
-                                "sigA" => sigA,
-                                "sigB" => sigB,
-                                "sigC" => sigC,
-                                "r"    => r,
-                                defaultHeading = "Segmented signals",
-                                hasOneTimeSignal = false) 
-                        
-# Generate line plots                     
+# Execute "using ModiaPlot_<globally defined plot package>"
 ModiaResult.@usingModiaPlot   # = "using ModiaPlot_PyPlot"
+
+# Generate line plots                     
 plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
 ```
 
-Executing this code results in the following plot:
+generate the following plot:
 
 ![SegmentedSignalsPlot](docs/resources/images/segmented-signals-plot.png)
-
-
-Many other examples are available at `$(ModiaResult.path)/test/*.jl`.
-
 
 
 ## Main developer

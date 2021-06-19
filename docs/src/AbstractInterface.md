@@ -14,6 +14,7 @@ This chapter documents the abstract interface to access a result data structure.
 | [`signalNames`](@ref)           | Return all signal names (required).                         |
 | [`timeSignalName`](@ref)        | Return the name of the time signal (required).              |
 | [`hasOneTimeSignal`](@ref)      | Return true if one time signal present (required).          |
+| [`getSignalDetails`](@ref)      | Return details of signal data (optional).                   |
 | [`hasSignal`](@ref)             | Return true if signal name is known (optional).             |
 | [`defaultHeading`](@ref)        | Return default heading as string (optional).                |
 
@@ -51,6 +52,7 @@ The following functions can be defined for a new result data structure.
 If they are not defined, a default implementation is used:
 
 ```@docs
+getSignalDetails
 hasSignal
 defaultHeading
 ```

@@ -412,36 +412,7 @@ function signalInfo(result, name::AbstractString)
 end
 
 
-
-"""
-    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = getSignalDetails(result, name)
-    
-Return the signal defined by `name::AbstractString` as
-`signal::Vector{Matrix{<:Real}}`.
-`name` may include an array range, such as "a.b.c[2:3,5]".
-In this case `arrayName` is the name without the array indices,
-such as `"a.b.c"`, `arrayIndices` is a tuple with the array indices,
-such as `(2:3, 5)` and `nScalarSignals` is the number of scalar
-signals, such as `3` if arrayIndices = `(2:3, 5)`. 
-Otherwise `arrayName = name, arrayIndices=(), nScalarSignals=1`.
-
-In case the signal is not known or `name` cannot be interpreted,
-`(nothing, nothing, nothing, nothing, name, (), 0)` is returned.
-
-It is required that the value of the signal at a time instant 
-has either `typeof(value) <: Real` or
-`typeof(value) = AbstractArray{Real, N}`.
-The following `Real` types are currently supported:
-
-1. `convert(Float64, eltype(value)` is supported
-   (for example Float32, Float64, DoubleFloat, Rational, Int32, Int64, Bool).
-  
-2. Measurements.Measurement{<Type of (1)>}.
-
-3. MonteCarloMeasurements.StaticParticles{<Type of (1)>}.
-
-4. MonteCarloMeasurements.Particles{<Type of (1)>}.
-"""
+# Default implementation of getSignalDetails
 function getSignalDetails(result, name::AbstractString)
     sigPresent = false
     if hasSignal(result, name)
