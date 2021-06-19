@@ -477,8 +477,13 @@ function getSignalDetails(result, name::AbstractString)
                         nScalarSignals = length(sig[1][1])     
                         
                         # "flatten" array to matrix
+                        eltypeValue = eltype(value)
+                        if !(eltypeValue <: Number)
+                            @warn "eltype($name) = $eltypeValue and this is not <: Number!"
+                            return (nothing, nothing, nothing, nothing, name, (), 0)
+                        end
                         for segment = 1:length(sig2)      
-                            sig[segment] = zeros(eltype(value), length(sig2[segment]), nScalarSignals)
+                            sig[segment] = zeros(eltypeValue, length(sig2[segment]), nScalarSignals)
                             siga  = sig[segment]
                             sig2a = sig2[segment]
                             for (i, value_i) in enumerate(sig2a)
