@@ -3,7 +3,9 @@
 #
 # This file is part of module ModiaResult (is included by the ModiaPlot_XXMakie packages).
    
-        
+export plot, showFigure, saveFigure, closeFigure, closeAllFigures
+
+
 #--------------------------- Utility definitions
              
 # color definitions
