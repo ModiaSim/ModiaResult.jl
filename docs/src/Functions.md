@@ -7,12 +7,15 @@ CurrentModule = ModiaResult
 This chapter documents the functions that a user of this package typically utilizes.
 
 The following functions are available when prefixed with `ModiaResult`.
-Note, `ModiaResult` does not `export` any symbols
-(for example: `import ModiaResult; ModiaResult.usePlotPackage("PyPlot")`).
 
-Some packages, such as [Modia](https://github.com/ModiaSim/Modia.jl), export all
-the function names below and then the functions can be directly accessed
-(for example: `using Modia; usePlotPackage("PyPlot")`).
+!!! note
+    `ModiaResult` does not `export` any symbols.\
+    (for example: `import ModiaResult; ModiaResult.usePlotPackage("PyPlot")`).
+    
+    Some packages, such as [Modia](https://github.com/ModiaSim/Modia.jl), export all
+    the function names below and then the functions can be directly accessed.\
+    (for example: `using Modia; usePlotPackage("PyPlot")`).
+    
 
 | Functions                        | Description                                               |
 |:---------------------------------|:----------------------------------------------------------|
@@ -60,7 +63,7 @@ The following function is typically only used for testing
 
 ## Functions of ModiaResult
 
-The following functions are provided by package `ModiaResull`.
+The following functions are provided by package `ModiaResult`.
 Other useful functions are available in the [Abstract Interface](@ref).
 
 ```@docs

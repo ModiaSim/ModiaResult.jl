@@ -19,14 +19,6 @@ This chapter documents the abstract interface to access a result data structure.
 | [`defaultHeading`](@ref)        | Return default heading as string (optional).                |
 
 
-The following figure sketches the signal definition:
-
-![SignalDefinition](../resources/images/signal-definition.png)
-
-Other signal types can be mapped to this basic signal type by introducing views 
-on special structs.
-
-
 ## Predefined enumeration
 
 ```@docs
@@ -36,7 +28,7 @@ SignalType
 
 ## Required functions
 
-The following functions must be defined for a new result data structure:
+The following functions must be defined for a new result data structure.
 
 ```@docs
 rawSignal
@@ -49,7 +41,7 @@ hasOneTimeSignal
 ## Optional functions
 
 The following functions can be defined for a new result data structure.
-If they are not defined, a default implementation is used:
+If they are not defined, a default implementation is used.
 
 ```@docs
 getSignalDetails

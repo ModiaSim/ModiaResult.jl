@@ -32,6 +32,15 @@ corresponding result values of the variable (= `signal`) and the type
 of the signal `signalType::`[`SignalType`](@ref)). Note, an error shall be raised, 
 if `name` is not known.
 
+The following figure sketches the returned `timeSignal` and `signal` data structures:
+
+![SignalDefinition](https://modiasim.github.io/ModiaResult.jl/resources/images/signal-definition.png)
+
+Other signal types might be mapped to this basic signal type by introducing views.
+
+
+# Details of the return arguments
+
 `timeSignal::Vector{Vector{T1}}`:
 A result consists of one or more **segments**.
 `timeSignal[i][j]` is the value of time instant `j` in segment `i`.
@@ -94,7 +103,8 @@ function hasOneTimeSignal end
 
 
 """
-    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = getSignalDetails(result, name)
+    (signal, timeSignal, timeSignalName, signalType, arrayName, 
+     arrayIndices, nScalarSignals) = getSignalDetails(result, name)
     
 Return the signal defined by `name::AbstractString` as
 `signal::Vector{Matrix{<:Real}}`.
