@@ -121,6 +121,10 @@ you might utilize the following approach.
 
 ## Release Notes
 
+### Version 0.3.1
+
+- Two new views on results added (SignalView and FlattenedSignalView).
+
 
 ### Version 0.3
 
