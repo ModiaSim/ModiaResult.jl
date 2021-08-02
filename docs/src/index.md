@@ -121,6 +121,11 @@ you might utilize the following approach.
 
 ## Release Notes
 
+### Version 0.3.3
+
+- ModiaResult/test/Project.toml: DataStructures replaced by OrderedCollections.
+
+
 ### Version 0.3.2
 
 - DataStructures replaced by OrderedCollections.
