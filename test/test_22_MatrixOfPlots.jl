@@ -1,7 +1,7 @@
 module test_22_MatrixOfPlots
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 ModiaResult.@usingModiaPlot
 

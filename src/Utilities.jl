@@ -7,7 +7,7 @@
 # Utility functions that are usually not directly called.
 
 using  Unitful
-import DataStructures
+import OrderedCollections
 import DataFrames
 import Measurements
 import MonteCarloMeasurements
@@ -232,7 +232,7 @@ end
 """
     ResultDict(args...; defaultHeading="", hasOneTimeSignal=true)
     
-Return a new ResultDict dictionary (is based on DataStructures.OrderedDict).
+Return a new ResultDict dictionary (is based on OrderedCollections.OrderedDict).
 
 - A key of the dictionary is a String. Key `"time"` characterizes the
   independent variable.
@@ -273,17 +273,17 @@ showInfo(result)
 ```
 """
 struct ResultDict    <: AbstractDict{String,Tuple{Any,Any,SignalType}}
-    dict::DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}
+    dict::OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}
     defaultHeading::String
     hasOneTimeSignal::Bool
     
     ResultDict(args...; defaultHeading="", hasOneTimeSignal=true) = 
-        new(DataStructures.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
+        new(OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
             defaultHeading, hasOneTimeSignal)
 end
 
 
-        #new(DataStructures.OrderedDict{String,Tuple{Vector{AbstractVector},
+        #new(OrderedCollections.OrderedDict{String,Tuple{Vector{AbstractVector},
         #                                            Vector{AbstractVector},
         #                                            ModiaResult.SignalType}}(args...),
                                                     

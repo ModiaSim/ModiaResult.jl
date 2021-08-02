@@ -121,6 +121,12 @@ you might utilize the following approach.
 
 ## Release Notes
 
+### Version 0.3.2
+
+- DataStructures replaced by OrderedCollections.
+- Version numbers of used packages updated.
+
+
 ### Version 0.3.1
 
 - Two new views on results added (SignalView and FlattenedSignalView).

@@ -2,7 +2,7 @@ module test_04_ConstantSignalsWithUnit
 
 using ModiaResult
 using Unitful
-using DataStructures
+using OrderedCollections
 ModiaResult.@usingModiaPlot
 
 inertia = [1.1  1.2  1.3;

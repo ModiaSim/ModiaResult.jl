@@ -1,7 +1,7 @@
 module test_07_OneScalarMeasurementSignalWithUnit
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 using Measurements
 ModiaResult.@usingModiaPlot

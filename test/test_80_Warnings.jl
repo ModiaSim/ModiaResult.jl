@@ -1,7 +1,7 @@
 module test_80_Warnings
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 ModiaResult.@usingModiaPlot
 

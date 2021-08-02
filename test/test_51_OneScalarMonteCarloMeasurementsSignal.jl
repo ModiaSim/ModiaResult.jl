@@ -1,7 +1,7 @@
 module test_51_OneScalarMonteCarloMeasurementsSignal
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 using MonteCarloMeasurements
 ModiaResult.@usingModiaPlot

@@ -1,7 +1,7 @@
 module test_26_TooManyLegends
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful 
 ModiaResult.@usingModiaPlot
 

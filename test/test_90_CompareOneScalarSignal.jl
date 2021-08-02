@@ -1,7 +1,7 @@
 module test_90_CompareOneScalarSignal
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using DataFrames
 ModiaResult.@usingModiaPlotPackage
 

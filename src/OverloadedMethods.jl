@@ -13,7 +13,7 @@
 import ModiaResult
 import DataFrames
 import Tables
-import DataStructures
+import OrderedCollections
 
 
 # Overloaded methods for AbstractDict{String,T}

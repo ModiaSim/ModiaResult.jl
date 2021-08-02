@@ -1,7 +1,7 @@
 module test_23_MatrixOfPlotsWithTimeLabelsInLastRow
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 ModiaResult.@usingModiaPlot
 

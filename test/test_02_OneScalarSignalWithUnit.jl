@@ -2,7 +2,7 @@ module test_02_OneScalarSignalWithUnit
 
 using ModiaResult
 using Unitful
-using DataStructures
+using OrderedCollections
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)

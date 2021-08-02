@@ -1,7 +1,7 @@
 module test_25_SeveralFigures
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 ModiaResult.@usingModiaPlot
 

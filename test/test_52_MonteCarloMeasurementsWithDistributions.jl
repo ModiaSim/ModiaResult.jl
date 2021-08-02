@@ -1,7 +1,7 @@
 module test_52_MonteCarloMeasurementsWithDistributions
 
 using ModiaResult
-using DataStructures
+using OrderedCollections
 using Unitful
 using MonteCarloMeasurements
 using Distributions
