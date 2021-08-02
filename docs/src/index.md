@@ -121,6 +121,11 @@ you might utilize the following approach.
 
 ## Release Notes
 
+
+### Version 0.3.4
+
+- Project.toml: Added older versions to DataFrames, in order to reduce conflicts.
+
 ### Version 0.3.3
 
 - ModiaResult/test/Project.toml: DataStructures replaced by OrderedCollections.
