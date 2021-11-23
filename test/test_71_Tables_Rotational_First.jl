@@ -1,9 +1,10 @@
 module test_71_Tables_Rotational_First
 
 using ModiaResult
-using DataFrames
+using ModiaResult.DataFrames
 using CSV
 ModiaResult.@usingModiaPlot
+
 
 result1 = CSV.File("$(ModiaResult.path)/test/test_71_Tables_Rotational_First.csv")
 result2 = DataFrames.DataFrame(result1)

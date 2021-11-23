@@ -171,17 +171,32 @@ function plotOneSignal(axis, xsig, ysig, color, ysigType, MonteCarloAsArea)
         
 	elseif typeof(ysig[1]) <: MonteCarloMeasurements.StaticParticles ||
            typeof(ysig[1]) <: MonteCarloMeasurements.Particles
-        # Plot mean value signal           
-        xsig_mean = MonteCarloMeasurements.mean.(xsig)
-        ysig_mean = MonteCarloMeasurements.mean.(ysig)
+        # Plot mean value signal   
+        pfunctionsDefined = isdefined(MonteCarloMeasurements, :pmean) 
+        if pfunctionsDefined
+            # MonteCarlMeasurements, version >= 1.0
+            xsig_mean = MonteCarloMeasurements.pmean.(xsig)
+            ysig_mean = MonteCarloMeasurements.pmean.(ysig)
+        else
+            # MonteCarloMeasurements, version < 1.0
+            xsig_mean = MonteCarloMeasurements.mean.(xsig)
+            ysig_mean = MonteCarloMeasurements.mean.(ysig)            
+        end
         xsig_mean = ustrip.(xsig_mean)
         ysig_mean = ustrip.(ysig_mean)     
         curve = lines!(axis, xsig_mean, ysig_mean, color=color)  
         
         if MonteCarloAsArea
             # Plot area of uncertainty around mean value signal (use the same color, but transparent)
-            ysig_max = MonteCarloMeasurements.maximum.(ysig)
-            ysig_min = MonteCarloMeasurements.minimum.(ysig)
+            if pfunctionsDefined
+                # MonteCarlMeasurements, version >= 1.0          
+                ysig_max = MonteCarloMeasurements.pmaximum.(ysig)
+                ysig_min = MonteCarloMeasurements.pminimum.(ysig)
+            else
+                # MonteCarloMeasurements, version < 1.0
+                ysig_max = MonteCarloMeasurements.maximum.(ysig)
+                ysig_min = MonteCarloMeasurements.minimum.(ysig)                
+            end            
             ysig_max = ustrip.(ysig_max)
             ysig_min = ustrip.(ysig_min)   
             fill_between(axis, xsig_mean, ysig_min, ysig_max, (color,0.2))
@@ -204,7 +219,13 @@ function plotOneSignal(axis, xsig, ysig, color, ysigType, MonteCarloAsArea)
             xsig = Measurements.value.(xsig)
         elseif typeof(xsig[1]) <: MonteCarloMeasurements.StaticParticles ||
                typeof(xsig[1]) <: MonteCarloMeasurements.Particles
-            xsig = MonteCarloMeasurements.mean.(xsig) 
+            if isdefined(MonteCarloMeasurements, :pmean) 
+                # MonteCarlMeasurements, version >= 1.0 
+                xsig = MonteCarloMeasurements.pmean.(xsig)                
+            else
+                # MonteCarlMeasurements, version < 1.0              
+                xsig = MonteCarloMeasurements.mean.(xsig)
+            end
             xsig = ustrip.(xsig)
         end
   

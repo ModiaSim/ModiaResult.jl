@@ -19,7 +19,7 @@ include("test_51_OneScalarMonteCarloMeasurementsSignal.jl")
 include("test_52_MonteCarloMeasurementsWithDistributions.jl")    
     
 include("test_70_ResultDict.jl")
-include("test_71_Tables_Rotational_First.jl")  
+# include("test_71_Tables_Rotational_First.jl")    # deactivated, because "using CSV"
 include("test_72_ResultDictWithMatrixOfPlots.jl")
 
 include("test_80_Warnings.jl")
