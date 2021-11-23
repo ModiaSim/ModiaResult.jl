@@ -1,7 +1,7 @@
 name = "ModiaResult"
 uuid = "16a87621-1533-42f6-8e19-4a825980cec2"
 authors = ["Martin.Otter@dlr.de <Martin.Otter@dlr.de>"]
-version = "0.3.4"
+version = "0.3.5"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
@@ -15,7 +15,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 [compat]
 DataFrames = "1, 0.22, 0.21, 0.20, 0.19"
 Measurements = "2"
-MonteCarloMeasurements = "0.10"
+MonteCarloMeasurements = "1, 0.10"
 OrderedCollections = "1"
 Pkg = "1"
 Tables = "1"

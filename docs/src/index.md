@@ -45,7 +45,9 @@ julia> ]add ModiaResult
         add ModiaPlot_PyPlot        # if plotting with PyPlot desired
 ```
 
-
+If you have trouble installing `ModiaPlot_PyPlot`, see 
+[Installation of PyPlot.jl](https://modiasim.github.io/ModiaResult.jl/stable/index.html#Installation-of-PyPlot.jl)
+ 
 ## Installation of PyPlot.jl
 
 `ModiaPlot_PyPlot.jl` uses `PyPlot.jl` which in turn uses Python. 
@@ -81,42 +83,10 @@ plot(t,2*t)
 ```
 
 If the above does not work, or you want to use another Python distribution,
-you might utilize the following approach.
-
-1. Install a Python 3.x distribution that contains Matplotlib.\
-   Recommended: [Anaconda distribution](https://www.anaconda.com/download/).\
-   Advantage: very robust;\
-   Disadvantage: > 3 GByte memory needed;\
-   `ModiaPlot_PyPlot` is based on the Python 3.x version of Matplotlib where some keywords
-   are different to the Python 2.x version.\
-   On **Windows 10**, either provide a `julia_start.bat` file with the following content
-   (and add `<path-to-julia-installation>\bin` to the path environment variable):
-   ```
-   call <path-to-Anaconda3>\Anaconda3\Scripts\activate.bat
-   julia
-   ```
-   and always start julia by calling `julia_start`,\
-   or you could add the following directories to the path environment variable:
-   ```
-   <path-to-Anaconda3>\Anaconda3
-   <path-to-Anaconda3>\Anaconda3\Library\mingw-w64\bin
-   <path-to-Anaconda3>\Anaconda3\Library\usr\bin
-   <path-to-Anaconda3>\Anaconda3\Library\bin
-   <path-to-Anaconda3>\Anaconda3\Scripts
-   <path-to-Anaconda3>\Anaconda3\bin
-   <path-to-Anaconda3>\Anaconda3\condabin
-   ```
-   and start julia by calling `julia`
-2. Include the path to the Python executable in your startup file\
-   (`<path-to-user>/.julia/config/startup.jl`):\
-    `ENV["PYTHON"] = "<path-above-Anaconda3>/Anaconda3/python.exe"`.
-3. Start Julia, give the command `ENV["PYTHON"]` in the REPL, and check whether the path
-   is correct (if you made a typo in the startup file, Julia might use another
-   Python executable and PyPlot might crash Julia).
-4. If you have used a different Python installation before, execute the command
-   `]build PyCall` (or `using Pkg; Pkg.build("PyCall")`, exit Julia and start Julia again.
-5. Install PyPlot via `]add PyPlot` (or `using Pkg; Pkg.add("PyPlot")`)
-
+install a [Python 3.x distribution](https://wiki.python.org/moin/PythonDistributions) that contains Matplotlib,
+set `ENV["PYTHON"] = "<path-above-python-installation>/python.exe"` and follow the steps above.
+Note, `ModiaPlot_PyPlot` is based on the Python 3.x version of Matplotlib where some keywords
+are different to the Python 2.x version.
 
 
 ## Release Notes
