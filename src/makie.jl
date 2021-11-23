@@ -146,11 +146,12 @@ function sig_max(xsig, y_min, y_max)
     return y_max2
 end
     
-    
+# Something of the following is required in the file where makie.jl is included:
+#   const Makie_Point2f = isdefined(GLMakie, :Point2f) ? Point2f : Point2f0     
 function fill_between(axis, xsig, ysig_min, ysig_max, color)
     ysig_max2 = sig_max(xsig, ysig_min, ysig_max) 
-    sig = Point2f0.(xsig,ysig_min)
-    append!(sig, reverse(Point2f0.(xsig,ysig_max2)))
+    sig = Makie_Point2f.(xsig,ysig_min)
+    append!(sig, reverse(Makie_Point2f.(xsig,ysig_max2)))
     push!(sig, sig[1])
     return poly!(axis, sig, color = color)  
 end
