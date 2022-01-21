@@ -70,7 +70,7 @@ generate the following plot:
 ![SegmentedSignalsPlot](docs/resources/images/segmented-signals-plot.png)
 
 
-# Abstract Result Interface
+## Abstract Result Interface
 
 For every result data structure a few access functions have to be defined
 (for details see Abstract Interface](https://modiasim.github.io/ModiaResult.jl/stable/AbstractInterface.html)).
