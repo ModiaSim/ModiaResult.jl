@@ -5,7 +5,9 @@ CurrentModule = ModiaResult
 ```
 
 Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines 
-an abstract interface for **simulation results** and provides overloaded methods for:
+an abstract interface for **simulation results** with a potentially segmented 
+time axis (on different segments of the time axis, different variables might be defined)
+and provides overloaded methods for:
 
 - Dictionaries with String keys,
 
@@ -31,6 +33,51 @@ More details:
 - [Functions](Functions.html)
 - [Abstract Interface](AbstractInterface.html)
 - [Internal](Internal.html)
+
+
+## Example
+
+Assume that the result data structure is available, then the following commands
+
+
+```julia
+import ModiaResult
+
+# Define plotting software globally
+ModiaResult.activate("PyPlot") # or ENV["MODIA_PLOT"] = "PyPlot"
+
+# Execute "using ModiaPlot_<globally defined plot package>"
+ModiaResult.@usingModiaPlot   # = "using ModiaPlot_PyPlot"
+
+# Generate line plots                     
+plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
+```
+
+generate the following plot:
+
+![SegmentedSignalsPlot](../resources/images/segmented-signals-plot.png)
+
+
+## Abstract Result Interface
+
+For every result data structure a few access functions have to be defined
+(for details see [Abstract Interface](AbstractInterface.html)).
+Most importantly:
+
+
+```
+(timeSignal, signal, signalType) = ModiaResult.rawSignal(result, name)
+```
+
+Given the result data structure `result` and a variable `name::AbstractString`,
+return the result values of the independent variable (= `timeSignal`), the 
+corresponding result values of the variable (= `signal`) and the type
+of the signal `signalType::`[`SignalType`](@ref)). 
+The following figure sketches the returned `timeSignal` and `signal` data structures:
+
+![SignalDefinition](../resources/images/signal-definition.png)
+
+Other signal types might be mapped to this basic signal type by introducing views.
 
 
 ## Installation
@@ -90,6 +137,29 @@ are different to the Python 2.x version.
 
 
 ## Release Notes
+
+### Version 0.3.8
+
+- Better handling if some input arguments are `nothing`.
+- Bug corrected when accessing a vector element, such as `mvec[2]`.
+- Documentation slightly improved.
+
+
+### Version 0.3.7
+
+- Replaced Point2f0 by Makie_Point2f that needs to be defined according to the newest Makie version.
+
+
+### Version 0.3.6
+
+- Adapt to MonteCarloMeasurements, version >= 1.0 (e.g. pmean(..) instead of mean(..))
+- Remove test_71_Tables_Rotational_First.jl from runtests.jl, because "using CSV" 
+  (in order that CSV.jl does not have to be added to the Project.toml file)
+
+
+### Version 0.3.5
+
+- Project.toml: Added version 1 of MonteCarloMeasurements.
 
 
 ### Version 0.3.4

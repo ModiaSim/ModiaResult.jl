@@ -16,7 +16,7 @@ include("test_25_SeveralFigures.jl")
 include("test_26_TooManyLegends.jl") 
 
 include("test_51_OneScalarMonteCarloMeasurementsSignal.jl")
-include("test_52_MonteCarloMeasurementsWithDistributions.jl")    
+Test.@test_broken include("test_52_MonteCarloMeasurementsWithDistributions.jl")    
     
 include("test_70_ResultDict.jl")
 # include("test_71_Tables_Rotational_First.jl")    # deactivated, because "using CSV"

@@ -20,7 +20,7 @@ const ModiaPlotPackagesStack = String[]
 
 """
     usePlotPackage(plotPackage::String)
-    
+
 Define the ModiaPlot package that shall be used by command `ModiaResult.@usingModiaPlot`.
 If a ModiaPlot package is already defined, save it on an internal stack
 (can be reactivated with `usePreviousPlotPackage()`.
@@ -86,7 +86,7 @@ end
 
 """
     usePreviousPlotPackage()
-    
+
 Pop the last saved ModiaPlot package from an internal stack
 and call `usePlotPackage(<popped ModiaPlot package>)`.
 """
@@ -104,7 +104,7 @@ end
 
 """
     currentPlotPackage()
-    
+
 Return the name of the plot package as a string that was
 defined with [`usePlotPackage`](@ref).
 For example, the function may return "GLMakie", "PyPlot" or "NoPlot" or
@@ -116,7 +116,7 @@ currentPlotPackage() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
 
 """
     @usingModiaPlot()
-    
+
 Execute `using XXX`, where `XXX` is the ModiaPlot package that was
 activated with `usePlotPackage(plotPackage)`.
 """
@@ -130,19 +130,19 @@ macro usingModiaPlot()
             @goto USE_NO_PLOT
         elseif ModiaPlotPackage == "SilentNoPlot"
             expr = :( import ModiaResult.SilentNoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
-            return esc( expr )           
+            return esc( expr )
         else
             ModiaPlotPackage = Symbol("ModiaPlot_" * ModiaPlotPackage)
             expr = :(using $ModiaPlotPackage)
-            println("$expr")            
+            println("$expr")
             return esc( :(using $ModiaPlotPackage) )
         end
-        
+
     else
         @warn "No plot package activated. Using \"NoPlot\"."
         @goto USE_NO_PLOT
     end
-    
+
     @label USE_NO_PLOT
     expr = :( import ModiaResult.NoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
     println("$expr")
@@ -168,7 +168,7 @@ function resultInfo(result)
         @info "The call of showInfo(result) is ignored, since the argument is nothing."
         return
     end
-    
+
     resultInfoTable = DataFrames.DataFrame(name=String[], unit=String[], nTime=String[], signalType=String[], valueSize=String[], eltype=String[])
 
     timeSigName = timeSignalName(result)
@@ -182,16 +182,16 @@ function resultInfo(result)
             elType2     = "???"
 
         else
-            sigUnit2    = string(sigUnit)
+            sigUnit2    = sigUnit isa Nothing ? "???" : string(sigUnit)
             nTime2      = name==timeSigName && !hasOneTimeSignal(result) ? "---" : string(nTime)
             signalType2 = signalTypeToString[Int(signalType)]
-            valueSize2  = string(valueSize)
+            valueSize2  = valueSize isa Nothing ? "()" : string(valueSize)
             elType2     = string(elType)
         end
-            
+
         push!(resultInfoTable, [name, sigUnit2, nTime2, signalType2, valueSize2, elType2] )
-    end 
-    
+    end
+
     return resultInfoTable
 end
 
@@ -199,7 +199,7 @@ end
 
 """
     printResultInfo(result)
-    
+
 Print info about result.
 
 # Example
@@ -213,17 +213,17 @@ result = OrderedDict{String,Any}("time"=> t*u"s", "phi" => sin.(t)*u"rad")
 printResultInfo(result)
 
 # Gives output:
- # │ name  unit  nTime  signalType  valueSize  eltype  
+ # │ name  unit  nTime  signalType  valueSize  eltype
 ───┼───────────────────────────────────────────────────
  1 │ time  s     100    Independent ()         Float64
  2 │ phi   rad   100    Continuous  ()         Float64
-``` 
+```
 
 """
 function printResultInfo(result)::Nothing
     resultInfoTable = resultInfo(result)
-    show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)   
-    println(stdout)    
+    show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)
+    println(stdout)
     return nothing
 end
 
@@ -231,7 +231,7 @@ end
 
 """
     ResultDict(args...; defaultHeading="", hasOneTimeSignal=true)
-    
+
 Return a new ResultDict dictionary (is based on OrderedCollections.OrderedDict).
 
 - A key of the dictionary is a String. Key `"time"` characterizes the
@@ -257,13 +257,13 @@ time3 = 5.0 : 0.1  : 7.0
 sigA1 = sin.(time1)u"m"
 sigA2 = cos.(time2)u"m"
 sigA3 = sin.(time3)u"m"
-sigA  = ([time1, time2, time3], 
-         [sigA1, sigA2, sigA3 ], 
+sigA  = ([time1, time2, time3],
+         [sigA1, sigA2, sigA3 ],
          ModiaResult.SignalType)
 sigB  = ([time2], [sin.(time2)], ModiaResult.SignalType)
-sigC  = ([time3], [sin.(time3)], ModiaResult.Clocked)    
-    
-result = ModiaResult.ResultDict("time" => t, 
+sigC  = ([time3], [sin.(time3)], ModiaResult.Clocked)
+
+result = ModiaResult.ResultDict("time" => t,
                                 "sigA" => sigA,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
@@ -276,8 +276,8 @@ struct ResultDict    <: AbstractDict{String,Tuple{Any,Any,SignalType}}
     dict::OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}
     defaultHeading::String
     hasOneTimeSignal::Bool
-    
-    ResultDict(args...; defaultHeading="", hasOneTimeSignal=true) = 
+
+    ResultDict(args...; defaultHeading="", hasOneTimeSignal=true) =
         new(OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
             defaultHeading, hasOneTimeSignal)
 end
@@ -286,7 +286,7 @@ end
         #new(OrderedCollections.OrderedDict{String,Tuple{Vector{AbstractVector},
         #                                            Vector{AbstractVector},
         #                                            ModiaResult.SignalType}}(args...),
-                                                    
+
 # Overload AbstractDict methods
 Base.haskey(result::ResultDict, key) = Base.haskey(result.dict, key)
 
@@ -314,11 +314,11 @@ Base.values(result::ResultDict) = Base.values(result.dict)
 
 """
     signalLength(signal)
-    
+
 Return the total number of values of `signal::Vector{AbstractVector}`.
 If signal[i] is nothing or missing, a length of zero is returned.
 """
-function signalLength(signal::AbstractVector) 
+function signalLength(signal::AbstractVector)
     for s in signal
         if ismissing(s) || isnothing(s)
             return 0
@@ -327,11 +327,11 @@ function signalLength(signal::AbstractVector)
     return sum( length(s) for s in signal )
 end
 
-   
+
 
 """
     hasSameSegments(signal1, signal2)
-    
+
 Return true, if the lengths of the segments in `signal1` and in `signal2` are the same.
 """
 function hasSameSegments(signal1::Vector{AbstractVector}, signal2::Vector{AbstractVector})
@@ -344,14 +344,14 @@ function hasSameSegments(signal1::Vector{AbstractVector}, signal2::Vector{Abstra
             return false
         end
     end
-    
+
     return true
 end
-      
+
 
 """
     hasDimensionMismatch(signal, timeSignal, timeSignalName)
-    
+
 Print a warning message if signalLength(signal) != signalLength(timeSignal)
 and return true. Otherwise, return false
 """
@@ -359,14 +359,14 @@ function hasDimensionMismatch(signal, signalName, timeSignal, timeSignalName::Ab
     if signalLength(signal) != signalLength(timeSignal)
         lensignal = signalLength(signal)
         lentime   = signalLength(timeSignal)
-        @warn "signalLength of \"$signalName\" = $lensignal but signalLength of \"$timeSignalName\" = $lentime" 
+        @warn "signalLength of \"$signalName\" = $lensignal but signalLength of \"$timeSignalName\" = $lentime"
         return true
     end
     return false
 end
 
 
-    
+
 """
     (sigType, nTime, sigSize, sigElType, sigUnit) = signalInfo(result, name)
 
@@ -380,21 +380,26 @@ Return information about a signal, given the `name` of the signal in `result`:
 
 - `sigElType`: ustrip( eltype(signal[1][1]) ), that is the element type of the signal without unit.
 
-- `sigUnit`: Unit of signal 
+- `sigUnit`: Unit of signal
 
 If `name` is defined, but no signal is available (= nothing, missing or zero length),
 return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit`.
 """
 function signalInfo(result, name::AbstractString)
     (timeSignal, signal, sigType) = rawSignal(result,name)
-    if ismissing(signal) || isnothing(signal) || signalLength(signal) == 0 || 
-       hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
-        return (sigType, 0, nothing, nothing, nothing)       
+    if ismissing(signal) || isnothing(signal) || !(typeof(signal) <: AbstractArray) || signalLength(signal) == 0
+        hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
+        return (sigType, 0, nothing, nothing, nothing)
     end
 
-    value     = signal[1][1]
-    valueSize = size(value)
-    valueUnit = unit(value[1])
+    value = signal[1][1]
+    if value isa Number || value isa AbstractArray
+        valueSize = size(value)
+        valueUnit = unit(value[1])
+    else
+        hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
+        return (sigType, signalLength(timeSignal), nothing, typeof(value), nothing)
+    end
 
     if typeof(value) <: MonteCarloMeasurements.Particles
         elTypeAsString = string(typeof(ustrip.(value[1])))
@@ -402,10 +407,10 @@ function signalInfo(result, name::AbstractString)
         valueElType    = "MonteCarloMeasurements.Particles{" * elTypeAsString * ",$nparticles}"
     elseif typeof(value) <: MonteCarloMeasurements.StaticParticles
         elTypeAsString = string(typeof(ustrip.(value[1])))
-        nparticles     = length(value)        
-        valueElType    = "MonteCarloMeasurements.StaticParticles{" * elTypeAsString * ",$nparticles}"    
+        nparticles     = length(value)
+        valueElType    = "MonteCarloMeasurements.StaticParticles{" * elTypeAsString * ",$nparticles}"
     else
-        valueElType = typeof( ustrip.(value) ) 
+        valueElType = typeof( ustrip.(value) )
     end
     nTime = signalLength(timeSignal)
     return (sigType, nTime, valueSize, valueElType, valueUnit)
@@ -418,7 +423,7 @@ function getSignalDetails(result, name::AbstractString)
     if hasSignal(result, name)
         (timeSig, sig2, sigType) = rawSignal(result, name)
         timeSigName = timeSignalName(result)
-        if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
+        if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 ||
               hasDimensionMismatch(sig2, name, timeSig, timeSigName) )
             sigPresent = true
             value      = sig2[1][1]
@@ -426,13 +431,13 @@ function getSignalDetails(result, name::AbstractString)
                 sig            = sig2
                 arrayName      = name
                 arrayIndices   = ()
-                nScalarSignals = 1 
+                nScalarSignals = 1
             else
-                arrayName      = name     
-                arrayIndices   = Tuple(1:Int(ni) for ni in size(value)) 
-                nScalarSignals = length(value) 
+                arrayName      = name
+                arrayIndices   = Tuple(1:Int(ni) for ni in size(value))
+                nScalarSignals = length(value)
                 sig = Vector{Matrix{eltype(value)}}(undef, length(sig2))
-                for segment = 1:length(sig2)      
+                for segment = 1:length(sig2)
                     sig[segment] = zeros(eltype(value), length(sig2[segment]), nScalarSignals)
                     siga  = sig[segment]
                     sig2a = sig2[segment]
@@ -442,47 +447,48 @@ function getSignalDetails(result, name::AbstractString)
                         end
                     end
                 end
-            end          
+            end
         end
-        
+
     else
         # Handle signal arrays, such as a.b.c[3] or a.b.c[2:3, 1:5, 3]
-        if name[end] == ']'      
+        if name[end] == ']'
             i = findlast('[', name)
             if i >= 2
                 arrayName = name[1:i-1]
-                indices   = name[i+1:end-1]                 
+                indices   = name[i+1:end-1]
                 if hasSignal(result, arrayName)
                     (timeSig, sig2, sigType) = rawSignal(result, arrayName)
                     timeSigName = timeSignalName(result)
-                    if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 || 
+                    if !( isnothing(sig2) || ismissing(sig2) || signalLength(sig2) == 0 ||
                           hasDimensionMismatch(sig2, arrayName, timeSig, timeSigName) )
                         sigPresent = true
                         value = sig2[1][1]
-                        
+
                         # Determine indices as tuple
-                        arrayIndices = eval( Meta.parse( "(" * indices * ",)" ) )       
-                        
+                        arrayIndices = eval( Meta.parse( "(" * indices * ",)" ) )
+
                         # Determine number of signals
                         #nScalarSignals = sum( length(indexRange) for indexRange in arrayIndices )
-                        
+
                         # Extract sub-matrix
                         sig = Vector{Any}(undef,length(sig2))
                         for segment = 1:length(sig2)
                             sig2a = sig2[segment]
                             sig[segment] = [getindex(sig2a[i], arrayIndices...) for i in eachindex(sig2a)]
                         end
-                        
+
                         # Determine number of signals
-                        nScalarSignals = length(sig[1][1])     
-                        
+                        nScalarSignals = length(sig[1][1])
+
                         # "flatten" array to matrix
+                        #=
                         eltypeValue = eltype(value)
                         if !(eltypeValue <: Number)
                             @warn "eltype($name) = $eltypeValue and this is not <: Number!"
                             return (nothing, nothing, nothing, nothing, name, (), 0)
                         end
-                        for segment = 1:length(sig2)      
+                        for segment = 1:length(sig2)
                             sig[segment] = zeros(eltypeValue, length(sig2[segment]), nScalarSignals)
                             siga  = sig[segment]
                             sig2a = sig2[segment]
@@ -492,6 +498,7 @@ function getSignalDetails(result, name::AbstractString)
                                 end
                             end
                         end
+                        =#
                     end
                 end
             end
@@ -507,9 +514,9 @@ end
 
 
 """
-    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) = 
+    (signal, timeSignal, timeSignalName, signalType, arrayName, arrayIndices, nScalarSignals) =
          getSignalWithWarning(result, name)
-    
+
 Call getSignal(result,name) and print a warning message if `signal == nothing`
 """
 function getSignalDetailsWithWarning(result,name::AbstractString)
@@ -539,9 +546,9 @@ end
 
 Given the result data structure `result` and a variable `ysigName::AbstractString` with
 or without array range indices (for example `ysigName = "a.b.c[2,3:5]"`) and an optional
-variable name `xsigName::AbstractString` for the x-axis, return 
+variable name `xsigName::AbstractString` for the x-axis, return
 
-- `xsig::Vector{T1<:Real}`: The vector of the x-axis signal without a unit. Segments are concatenated 
+- `xsig::Vector{T1<:Real}`: The vector of the x-axis signal without a unit. Segments are concatenated
   and separated by NaN.
 
 - `xsigLegend::AbstractString`: The legend of the x-axis consisting of the x-axis name
@@ -561,17 +568,17 @@ variable name `xsigName::AbstractString` for the x-axis, return
 
 - `ysigType::`[`SignalType`](@ref): The signal type of `ysig` (either `ModiaResult.Continuous`
   or `ModiaResult.Clocked`).
-  
-If `ysigName` is not valid, or no signal values are available, the function returns 
+
+If `ysigName` is not valid, or no signal values are available, the function returns
 `(nothing, nothing, nothing, nothing, nothing)`, and prints a warning message.
-"""      
+"""
 function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
     (ysig, xsig, timeSigName, ysigType, ysigArrayName, ysigArrayIndices, nysigScalarSignals) = getSignalDetailsWithWarning(result, ysigName)
-       
+
     # Check y-axis signal and time signal
     if isnothing(ysig) || isnothing(xsig) || isnothing(timeSigName)  || signalLength(ysig) == 0
-        @goto ERROR   
-    end    
+        @goto ERROR
+    end
 
     # Get xSigName or check xSigName
     if isnothing(xsigName)
@@ -582,52 +589,52 @@ function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
             @goto ERROR
         elseif !hasSameSegments(ysig, xsig)
             @warn "\"$xsigName\" (= x-axis) and \"$ysigName\" (= y-axis) have not the same time signal vector."
-            @goto ERROR                
+            @goto ERROR
         end
-    end 
-    
+    end
+
     # Check x-axis signal
     xsigValue = first(first(xsig))
     if length(xsigValue) != 1
         @warn "\"$xsigName\" does not characterize a scalar variable as needed for the x-axis."
         @goto ERROR
-    elseif !( typeof(xsigValue) <: Number )    
-        @warn "\"$xsigName\" has no Number type values, but values of type " * string(typeof(xsigValue)) * "."        
-        @goto ERROR    
+    elseif !( typeof(xsigValue) <: Number )
+        @warn "\"$xsigName\" has no Number type values, but values of type " * string(typeof(xsigValue)) * "."
+        @goto ERROR
     elseif typeof(xsigValue) <: Measurements.Measurement
         @warn "\"$xsigName\" is a Measurements.Measurement type and this is not (yet) supported for the x-axis."
-        @goto ERROR    
+        @goto ERROR
     elseif typeof(xsigValue) <: MonteCarloMeasurements.StaticParticles
         @warn "\"$xsigName\" is a MonteCarloMeasurements.StaticParticles type and this is not supported for the x-axis."
-        @goto ERROR  
+        @goto ERROR
     elseif typeof(xsigValue) <: MonteCarloMeasurements.Particles
         @warn "\"$xsigName\" is a MonteCarloMeasurements.Particles type and this is not supported for the x-axis."
-        @goto ERROR  
-    end    
-    
+        @goto ERROR
+    end
+
     # Build xsigLegend
     xsigLegend = appendUnit(xsigName, xsigValue)
 
     # Get one segment of the y-axis and check it
     ysegment1 = first(ysig)
     if !( typeof(ysegment1) <: AbstractVector || typeof(ysegment1) <: AbstractMatrix )
-        @error "Bug in function: typeof of an y-axis segment is neither a vector nor a Matrix, but " * string(typeof(ysegment1)) 
+        @error "Bug in function: typeof of an y-axis segment is neither a vector nor a Matrix, but " * string(typeof(ysegment1))
     elseif !(eltype(ysegment1) <: Number)
         @warn "\"$ysigName\" has no Number values but values of type " * string(eltype(ysegment1))
-        @goto ERROR    
+        @goto ERROR
     end
 
     # Build ysigLegend
     value = ysegment1[1]
     if ysigArrayIndices == ()
         # ysigName is a scalar variable
-        ysigLegend = [appendUnit(ysigName, value)]        
-        
+        ysigLegend = [appendUnit(ysigName, value)]
+
     else
         # ysigName is an array variable
         ysigLegend = [ysigArrayName * "[" for i = 1:nysigScalarSignals]
         i = 1
-        ySizeLength = Int[]        
+        ySizeLength = Int[]
         for j1 in eachindex(ysigArrayIndices)
             push!(ySizeLength, length(ysigArrayIndices[j1]))
             i = 1
@@ -642,7 +649,7 @@ function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
                 ncum = prod( ySizeLength[1:j1-1] )
                 for j2 in ysigArrayIndices[j1]
                     for j3 = 1:ncum
-                        ysigLegend[i] *= "," * string(j2)                       
+                        ysigLegend[i] *= "," * string(j2)
                         i += 1
                     end
                 end
@@ -653,32 +660,35 @@ function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
             ysigLegend[i] *= appendUnit("]", ysegment1[1,i])
         end
     end
-           
+
     #xsig2 = Vector{Any}(undef, length(xsig))
     #ysig2 = Vector{Any}(undef, length(ysig))
     #for i = 1:length(xsig)
     #    xsig2[i] = collect(ustrip.(xsig[i]))
     #    ysig2[i] = collect(ustrip.(ysig[i]))
     #end
-    
-    xsig2 = collect(ustrip.(first(xsig)))
+
+
+    #xsig2 = collect(ustrip.(first(xsig)))
+    #ysig2 = collect(ustrip.(first(ysig)))
+
+    xsig2 = collect(first(xsig))   # Gives suddenly error with ustrip.(first(xsig)) - unclear why
     ysig2 = collect(ustrip.(first(ysig)))
     if length(xsig) > 1
         xNaN = convert(eltype(xsig2), NaN)
         if ndims(ysig2) == 1
-            yNaN = convert(eltype(ysig2), NaN)               
+            yNaN = convert(eltype(ysig2), NaN)
         else
             yNaN = fill(convert(eltype(ysig2), NaN), 1, size(ysig2,2))
         end
-           
+
         for i = 2:length(xsig)
-            xsig2 = vcat(xsig2, xNaN, collect(ustrip.(xsig[i])))
+            xsig2 = vcat(xsig2, xNaN, collect((xsig[i])))
             ysig2 = vcat(ysig2, yNaN, collect(ustrip.(ysig[i])))
         end
     end
-            
     return (xsig2, xsigLegend, ysig2, ysigLegend, ysigType)
-    
+
     @label ERROR
     return (nothing, nothing, nothing, nothing, nothing)
 end
@@ -687,7 +697,7 @@ end
 
 """
     getHeading(result, heading)
-    
+
 Return `heading` if no empty string. Otherwise, return `defaultHeading(result)`.
 """
 getHeading(result, heading::AbstractString) = heading != "" ? heading : defaultHeading(result)
@@ -696,7 +706,7 @@ getHeading(result, heading::AbstractString) = heading != "" ? heading : defaultH
 
 """
     prepend!(prefix, signalLegend)
-    
+
 Add `prefix` string in front of every element of the `signalLegend` string-Vector.
 """
 function prepend!(prefix::AbstractString, signalLegend::Vector{AbstractString})

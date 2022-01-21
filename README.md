@@ -70,6 +70,28 @@ generate the following plot:
 ![SegmentedSignalsPlot](docs/resources/images/segmented-signals-plot.png)
 
 
+# Abstract Result Interface
+
+For every result data structure a few access functions have to be defined
+(for details see Abstract Interface](https://modiasim.github.io/ModiaResult.jl/stable/AbstractInterface.html)).
+Most importantly:
+
+
+```
+(timeSignal, signal, signalType) = ModiaResult.rawSignal(result, name)
+```
+
+Given the result data structure `result` and a variable `name::AbstractString`,
+return the result values of the independent variable (= `timeSignal`), the 
+corresponding result values of the variable (= `signal`) and the type
+of the signal. The following figure sketches the returned `timeSignal` and `signal` data structures:
+
+![SignalDefinition](docs/resources/images/signal-definition.png)
+
+Other signal types might be mapped to this basic signal type by introducing views.
+
+
+
 ## Main developer
 
 [Martin Otter](https://rmc.dlr.de/sr/en/staff/martin.otter/),
