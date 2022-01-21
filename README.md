@@ -73,7 +73,7 @@ generate the following plot:
 ## Abstract Result Interface
 
 For every result data structure a few access functions have to be defined
-(for details see Abstract Interface](https://modiasim.github.io/ModiaResult.jl/stable/AbstractInterface.html)).
+(for details see [Abstract Interface](https://modiasim.github.io/ModiaResult.jl/stable/AbstractInterface.html)).
 Most importantly:
 
 
