@@ -346,7 +346,7 @@ function plot(result, names::AbstractMatrix; heading::AbstractString="", grid::B
     
     # Update and display fig
     trim!(fig.layout)   
-    update!(fig.scene)
+    #update!(fig.scene)
     if callDisplayFunction
         display(fig)
     end        

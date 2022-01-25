@@ -482,7 +482,6 @@ function getSignalDetails(result, name::AbstractString)
                         nScalarSignals = length(sig[1][1])
 
                         # "flatten" array to matrix
-                        #=
                         eltypeValue = eltype(value)
                         if !(eltypeValue <: Number)
                             @warn "eltype($name) = $eltypeValue and this is not <: Number!"
@@ -498,7 +497,6 @@ function getSignalDetails(result, name::AbstractString)
                                 end
                             end
                         end
-                        =#
                     end
                 end
             end
@@ -670,10 +668,9 @@ function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
 
 
     #xsig2 = collect(ustrip.(first(xsig)))
-    #ysig2 = collect(ustrip.(first(ysig)))
-
-    xsig2 = collect(first(xsig))   # Gives suddenly error with ustrip.(first(xsig)) - unclear why
+    xsig2 = ustrip.(collect(first(xsig)))    
     ysig2 = collect(ustrip.(first(ysig)))
+
     if length(xsig) > 1
         xNaN = convert(eltype(xsig2), NaN)
         if ndims(ysig2) == 1
