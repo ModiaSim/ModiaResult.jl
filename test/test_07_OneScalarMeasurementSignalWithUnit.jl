@@ -1,9 +1,9 @@
 module test_07_OneScalarMeasurementSignalWithUnit
 
 using ModiaResult
-using OrderedCollections
-using Unitful
-using Measurements
+using ModiaResult.OrderedCollections
+using ModiaResult.Unitful
+using ModiaResult.Measurements
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)

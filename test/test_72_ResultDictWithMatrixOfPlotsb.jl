@@ -1,7 +1,7 @@
 module test_72_ResultDictWithMatrixOfPlotsb
 
 using ModiaResult
-using Unitful
+using ModiaResult.Unitful
 ModiaResult.@usingModiaPlot
 
 tr = [0.0, 15.0]

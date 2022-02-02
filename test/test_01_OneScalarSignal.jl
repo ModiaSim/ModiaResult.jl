@@ -1,7 +1,7 @@
 module test_01_OneScalarSignal
 
 using ModiaResult
-using OrderedCollections
+using ModiaResult.OrderedCollections
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)

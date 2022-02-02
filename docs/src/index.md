@@ -138,6 +138,10 @@ are different to the Python 2.x version.
 
 ## Release Notes
 
+### Version 0.3.10
+
+- Packages used in test models, prefixed with `ModiaResult.` to avoid missing package errors.
+
 
 ### Version 0.3.9
 

@@ -1,8 +1,8 @@
 module test_04_ConstantSignalsWithUnit
 
 using ModiaResult
-using Unitful
-using OrderedCollections
+using ModiaResult.Unitful
+using ModiaResult.OrderedCollections
 ModiaResult.@usingModiaPlot
 
 inertia = [1.1  1.2  1.3;

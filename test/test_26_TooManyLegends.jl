@@ -1,8 +1,8 @@
 module test_26_TooManyLegends
 
 using ModiaResult
-using OrderedCollections
-using Unitful 
+using ModiaResult.OrderedCollections
+using ModiaResult.Unitful 
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)

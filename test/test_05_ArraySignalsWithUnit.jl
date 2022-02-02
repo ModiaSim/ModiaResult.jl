@@ -1,8 +1,8 @@
 module test_05_ArraySignalsWithUnit
 
 using ModiaResult
-using Unitful
-using OrderedCollections
+using ModiaResult.Unitful
+using ModiaResult.OrderedCollections
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=1.0, length=100)

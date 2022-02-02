@@ -1,8 +1,8 @@
 module test_90_CompareOneScalarSignal
 
 using ModiaResult
-using OrderedCollections
-using DataFrames
+using ModiaResult.OrderedCollections
+using ModiaResult.DataFrames
 ModiaResult.@usingModiaPlotPackage
 
 t1 = range(0.0, stop=10.0, length=100)

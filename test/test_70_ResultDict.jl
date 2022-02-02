@@ -1,7 +1,7 @@
 module test_0_ResultDict
 
 using ModiaResult
-using Unitful
+using ModiaResult.Unitful
 ModiaResult.@usingModiaPlot
 
 time0 = [0.0, 15.0]

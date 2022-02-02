@@ -1,8 +1,8 @@
 module test_91_CompareOneScalarSignalWithUnit
 
 using ModiaResult
-using Unitful
-using DataFrames
+using ModiaResult.Unitful
+using ModiaResult.DataFrames
 ModiaResult.@usingModiaPlotPackage
 
 t = range(0.0, stop=10.0, length=100)

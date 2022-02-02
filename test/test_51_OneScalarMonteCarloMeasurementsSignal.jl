@@ -1,9 +1,9 @@
 module test_51_OneScalarMonteCarloMeasurementsSignal
 
 using ModiaResult
-using OrderedCollections
-using Unitful
-using MonteCarloMeasurements
+using ModiaResult.OrderedCollections
+using ModiaResult.Unitful
+using ModiaResult.MonteCarloMeasurements
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)

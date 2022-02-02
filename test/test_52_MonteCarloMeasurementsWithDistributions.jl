@@ -1,10 +1,10 @@
 module test_52_MonteCarloMeasurementsWithDistributions
 
 using ModiaResult
-using OrderedCollections
-using Unitful
-using MonteCarloMeasurements
-using Distributions
+using ModiaResult.OrderedCollections
+using ModiaResult.Unitful
+using ModiaResult.MonteCarloMeasurements
+using ModiaResult.MonteCarloMeasurements.Distributions
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
