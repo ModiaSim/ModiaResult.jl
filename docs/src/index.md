@@ -138,6 +138,15 @@ are different to the Python 2.x version.
 
 ## Release Notes
 
+
+### Version 0.3.9
+
+- Wrong link in README.md corrected
+- makie.jl: Adapted to newer Makie version (update!(..) no longer known and needed).
+- Issue with ustrip fixed.
+- Broken test_52_MonteCarloMeasurementsWithDistributions.jl reactivated
+- Manifest.toml updated. 
+
 ### Version 0.3.8
 
 - Better handling if some input arguments are `nothing`.
