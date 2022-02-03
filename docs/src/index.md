@@ -138,6 +138,13 @@ are different to the Python 2.x version.
 
 ## Release Notes
 
+### Version 0.4.0
+
+- Require Julia 1.7
+- Upgrade Manifest.toml to version 2.0
+- Update Project.toml/Manifest.toml
+
+
 ### Version 0.3.10
 
 - Packages used in test models, prefixed with `ModiaResult.` to avoid missing package errors.
