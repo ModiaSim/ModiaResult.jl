@@ -444,7 +444,7 @@ function signalInfo2(result, name::AbstractString)
     (timeSignal, signal, sigType) = rawSignal(result,name)
     if ismissing(signal) || isnothing(signal) || !(typeof(signal) <: AbstractArray) || signalLength(signal) == 0
         hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
-        return (sigType, 0, nothing, nothing, nothing)
+        return (sigType, 0, nothing, nothing, nothing, nothing)
     end
 
     oneSigValue = length(signal) == 1 && typeof(signal[1]) <: OneValueVector
