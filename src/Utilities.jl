@@ -455,7 +455,7 @@ function signalInfo2(result, name::AbstractString)
         valueUnit = unit(value[1])
     else
         hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
-        return (sigType, signalLength(timeSignal), nothing, typeof(value), nothing)
+        return (sigType, signalLength(timeSignal), nothing, typeof(value), nothing, oneSigValue)
     end
 
     if typeof(value) <: MonteCarloMeasurements.Particles

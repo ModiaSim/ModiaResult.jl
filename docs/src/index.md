@@ -138,6 +138,11 @@ are different to the Python 2.x version.
 
 ## Release Notes
 
+### Version 0.4.3
+
+- Internal bug fixed.
+
+
 ### Version 0.4.2
 
 - `printResultInfo(..)` and `resultInfo(..)` improved
