@@ -169,28 +169,49 @@ function resultInfo(result)
         return
     end
 
-    resultInfoTable = DataFrames.DataFrame(name=String[], unit=String[], nTime=String[], signalType=String[], valueSize=String[], eltype=String[])
-
+    name2       = String[]
+    unit2       = String[]
+    nTime2      = String[]
+    signalType2 = String[]
+    valueSize2  = String[]
+    eltype2     = String[]
+    
     timeSigName = timeSignalName(result)
     for name in signalNames(result)
-        (signalType, nTime, valueSize, elType, sigUnit) = signalInfo(result, name)
+        (signalType, nTime, valueSize, elType, sigUnit, oneSigValue) = signalInfo2(result, name)
         if isnothing(elType)
-            sigUnit2    = "???"
-            nTime2      = "???"
-            signalType2 = "???"
-            valueSize2  = "???"
-            elType2     = "???"
+            sigUnit3     = "???"
+            nTime3       = "???"
+            signalType3  = "???"
+            valueSize3   = "???"
+            eltype3      = "???"
 
         else
-            sigUnit2    = sigUnit isa Nothing ? "???" : string(sigUnit)
-            nTime2      = name==timeSigName && !hasOneTimeSignal(result) ? "---" : string(nTime)
-            signalType2 = signalTypeToString[Int(signalType)]
-            valueSize2  = valueSize isa Nothing ? "()" : string(valueSize)
-            elType2     = string(elType)
+            sigUnit3    = sigUnit isa Nothing ? "???" : string(sigUnit)
+            nTime3      = name==timeSigName && !hasOneTimeSignal(result) ? "---" : (oneSigValue ? string(nTime)*"*" : string(nTime))
+            signalType3 = signalTypeToString[Int(signalType)]
+            valueSize3  = valueSize isa Nothing ? "()" : string(valueSize)
+            eltype3     = string(elType)
         end
 
-        push!(resultInfoTable, [name, sigUnit2, nTime2, signalType2, valueSize2, elType2] )
+        if signalType3 == "Independent"
+            pushfirst!(name2      , name)
+            pushfirst!(unit2      , sigUnit3)
+            pushfirst!(nTime2     , nTime3)
+            pushfirst!(signalType2, signalType3)
+            pushfirst!(valueSize2 , valueSize3)
+            pushfirst!(eltype2    , eltype3)
+        else
+            push!(name2      , name)
+            push!(unit2      , sigUnit3)
+            push!(nTime2     , nTime3)
+            push!(signalType2, signalType3)
+            push!(valueSize2 , valueSize3)
+            push!(eltype2    , eltype3)
+        end
     end
+
+    resultInfoTable = DataFrames.DataFrame(name=name2, unit=unit2, nTime=nTime2, signalType=signalType2, valueSize=valueSize2, eltype=eltype2)
 
     return resultInfoTable
 end
@@ -209,7 +230,9 @@ using Unitful
 ModiaResult.@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
-result = OrderedDict{String,Any}("time"=> t*u"s", "phi" => sin.(t)*u"rad")
+result = OrderedDict{String,Any}("time"=> t*u"s", 
+                                 "phi" => sin.(t)*u"rad", 
+                                 "A"   => OneValueVector(2.0, length(t)))
 printResultInfo(result)
 
 # Gives output:
@@ -217,6 +240,8 @@ printResultInfo(result)
 ───┼───────────────────────────────────────────────────
  1 │ time  s     100    Independent ()         Float64
  2 │ phi   rad   100    Continuous  ()         Float64
+ 3 | A           100*   Continuous  ()         Float64
+ *: Signal stored as ModiaResult.OneValueVector (e.g. parameter)
 ```
 
 """
@@ -224,6 +249,7 @@ function printResultInfo(result)::Nothing
     resultInfoTable = resultInfo(result)
     show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)
     println(stdout)
+    println("*: Signal stored as ModiaResult.OneValueVector (e.g. parameter)\n")
     return nothing
 end
 
@@ -386,12 +412,43 @@ If `name` is defined, but no signal is available (= nothing, missing or zero len
 return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit`.
 """
 function signalInfo(result, name::AbstractString)
+    (sigType, nTime, valueSize, valueElType, valueUnit, oneSigValue) = signalInfo2(result,name)
+    return (sigType, nTime, valueSize, valueElType, valueUnit)
+end
+
+
+"""
+    (sigType, nTime, sigSize, sigElType, sigUnit, oneSigValue) = signalInfo2(result, name)
+
+Return information about a signal, given the `name` of the signal in `result`.
+The difference to `signalInfo(..)` is that additionally the information is returned,
+whether the signals consists only of one value.
+
+- `sigType::SignalType`: Ìnterpolation type of signal.
+
+- `nTime::Int`: Number of signal time points.
+
+- `sigSize`: size(signal[1][1])
+
+- `sigElType`: ustrip( eltype(signal[1][1]) ), that is the element type of the signal without unit.
+
+- `sigUnit`: Unit of signal
+
+- `oneSigValue`: = true, at all time instants, the signal has identical values (e.g. if parameter defined with OneValueVector).
+                 = false, signal has potentially different values at different time instants (which might be an array
+
+If `name` is defined, but no signal is available (= nothing, missing or zero length),
+return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit, oneSigValue`.
+"""
+function signalInfo2(result, name::AbstractString)
     (timeSignal, signal, sigType) = rawSignal(result,name)
     if ismissing(signal) || isnothing(signal) || !(typeof(signal) <: AbstractArray) || signalLength(signal) == 0
         hasDimensionMismatch(signal, name, timeSignal, timeSignalName(result))
         return (sigType, 0, nothing, nothing, nothing)
     end
 
+    oneSigValue = length(signal) == 1 && typeof(signal[1]) <: OneValueVector
+    
     value = signal[1][1]
     if value isa Number || value isa AbstractArray
         valueSize = size(value)
@@ -413,7 +470,7 @@ function signalInfo(result, name::AbstractString)
         valueElType = typeof( ustrip.(value) )
     end
     nTime = signalLength(timeSignal)
-    return (sigType, nTime, valueSize, valueElType, valueUnit)
+    return (sigType, nTime, valueSize, valueElType, valueUnit, oneSigValue)
 end
 
 

@@ -138,6 +138,18 @@ are different to the Python 2.x version.
 
 ## Release Notes
 
+### Version 0.4.2
+
+- `printResultInfo(..)` and `resultInfo(..)` improved
+  (signals with one value defined with ModiaResult.OneValueVector are specially marked,
+  for example parameters).
+
+
+### Version 0.4.1
+
+- Update of Manifest.toml file
+
+
 ### Version 0.4.0
 
 - Require Julia 1.7
