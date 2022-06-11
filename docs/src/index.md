@@ -6,33 +6,41 @@ CurrentModule = ModiaResult
 
 Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines 
 an abstract interface for **simulation results** with a potentially segmented 
-time axis (on different segments of the time axis, different variables might be defined)
-and provides overloaded methods for:
+time axis (on different segments of the time axis, different variables might be defined).
 
-- Dictionaries with String keys,
+A simulation *result* consists of a set of result *signals*. A result *signal* is identified by its `name::AbstractString`.
+It provides an approximation of a piecewise continuous variable ``v = v(t)`` which is a (partial) function
+of the independent, monotonically increasing variable ``t``. Typically, the independent variable ``t`` is called *time*.
+The approximation consists of the values of variable ``v`` at particular time instants, ``v_i = v(t_i)``
+together with the information how to interpolate between these time instants
+(currently, only linear interpolation in piecewise-continuous functions is supported).
+A variable value ``v_i(t_i)`` is typically a sub-type of *Number* or of *AbstractArray* with an element type of *Number*.
+Optionally, a unit (via [`Unitful.jl`](https://github.com/PainterQubits/Unitful.jl)) can be associated with a 
+variable ``v`` (so the same unit for all elements, if the variable is an array).
 
-- [DataFrame](https://github.com/JuliaData/DataFrames.jl) tables, 
+The ModiaResult package provides an abstract interface to **operate** on such simulation results, most import
+to produce **line plots** in a **convenient way** (see example below). One advantage of this approach is
+that the used plot packages are only defined in ModiaResult, and not in the packages that use ModiaResult.
 
-- [Tables](https://github.com/JuliaData/Tables.jl) (for example [CSV](https://github.com/JuliaData/CSV.jl)), and
+*Concrete implementations* of the ModiaResult abstract interface are provided for:
 
-- [`ModiaResult.ResultDict`](@ref) (special dictionary with all features of the interface). 
+- [Modia.jl](https://github.com/ModiaSim/Modia.jl) (a modeling and simulation environment)
+- [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) (tabular data; first column is independent variable)
+- [Tables.jl](https://github.com/JuliaData/Tables.jl) (abstract interface for tabular data, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables; first column is independent variable),
+- Dictionaries with String keys (if OrderedDict, independent variable is first variable, otherwise independent variable is "time").
 
-Additionally, **operations** on simulation results are provided, especially to produce **line plots**
-in a **convenient way** based on 
+*Concrete implementations* of the `ModiaResult.plot` abstract interface are provided for the following plot packages:
 
+- [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with Matplotlib from Python), 
 - [GLMakie](https://github.com/JuliaPlots/GLMakie.jl) (interactive plots in an OpenGL window),
 - [WGLMakie](https://github.com/JuliaPlots/WGLMakie.jl) (interactive plots in a browser window),
-- [CairoMakie](https://github.com/JuliaPlots/CairoMakie.jl) (static plots on file with publication quality),
-- [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with Matplotlib from Python), 
-- NoPlot (= all plot calls are ignored; NoPlot is a module in ModiaResult), or
-- SilentNoPlot (= NoPlot without messages; SilentNoPlot is a module in ModiaResult).
+- [CairoMakie](https://github.com/JuliaPlots/CairoMakie.jl) (static plots on file with publication quality).
 
-More details:
+Furthermore, there are two dummy modules included in ModiaResult, that are useful when performing tests with runtests.jl, 
+in order that no plot package needs to be loaded during the tests:
 
-- [Getting Started](GettingStarted.html)
-- [Functions](Functions.html)
-- [Abstract Interface](AbstractInterface.html)
-- [Internal](Internal.html)
+- NoPlot (= all plot calls are ignored and info messages are instead printed), or
+- SilentNoPlot (= NoPlot without messages).
 
 
 ## Example
@@ -61,23 +69,7 @@ generate the following plot:
 ## Abstract Result Interface
 
 For every result data structure a few access functions have to be defined
-(for details see [Abstract Interface](AbstractInterface.html)).
-Most importantly:
-
-
-```
-(timeSignal, signal, signalType) = ModiaResult.rawSignal(result, name)
-```
-
-Given the result data structure `result` and a variable `name::AbstractString`,
-return the result values of the independent variable (= `timeSignal`), the 
-corresponding result values of the variable (= `signal`) and the type
-of the signal `signalType::`[`SignalType`](@ref)). 
-The following figure sketches the returned `timeSignal` and `signal` data structures:
-
-![SignalDefinition](../resources/images/signal-definition.png)
-
-Other signal types might be mapped to this basic signal type by introducing views.
+(for details see [Abstract Interface](@ref)).
 
 
 ## Installation
@@ -86,15 +78,16 @@ All packages are registered and are installed with:
 
 ```julia
 julia> ]add ModiaResult
+        add ModiaPlot_PyPlot        # if plotting with PyPlot desired
         add ModiaPlot_GLMakie       # if plotting with GLMakie desired
         add ModiaPlot_WGLMakie      # if plotting with WGLMakie desired
         add ModiaPlot_CairoMakie    # if plotting with CairoMakie desired
-        add ModiaPlot_PyPlot        # if plotting with PyPlot desired
 ```
 
 If you have trouble installing `ModiaPlot_PyPlot`, see 
 [Installation of PyPlot.jl](https://modiasim.github.io/ModiaResult.jl/stable/index.html#Installation-of-PyPlot.jl)
- 
+
+
 ## Installation of PyPlot.jl
 
 `ModiaPlot_PyPlot.jl` uses `PyPlot.jl` which in turn uses Python. 
@@ -137,6 +130,19 @@ are different to the Python 2.x version.
 
 
 ## Release Notes
+
+### Version 0.5.0-dev
+
+- 
+
+
+**Non-backwards compatible changes**
+
+- A result data structure has only one time axis (previously, a result datastructure could have several time axes).
+  Therefore, function `hasOneTimeSignal` makes no sense anymore and is removed.
+  
+
+
 
 ### Version 0.4.3
 

@@ -1,5 +1,5 @@
 # License for this file: MIT (expat)
-# Copyright 2021, DLR Institute of System Dynamics and Control
+# Copyright 2021-2022, DLR Institute of System Dynamics and Control
 # Developer: Martin Otter, DLR-SR
 #
 # This file is part of module ModiaResult
@@ -8,7 +8,6 @@
 # - AbstractDict{String,T}
 # - DataFrames
 # - Tables
-# - ModiaResult.ResultDict
 
 import ModiaResult
 import DataFrames
@@ -17,12 +16,25 @@ import OrderedCollections
 
 
 # Overloaded methods for AbstractDict{String,T}
-ModiaResult.rawSignal(       result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = ([result["time"]], [result[name]], 
-                                                                                                            name == "time" ? ModiaResult.Independent : ModiaResult.Continuous)
-ModiaResult.signalNames(     result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
-ModiaResult.timeSignalName(  result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = "time" 
-ModiaResult.hasOneTimeSignal(result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = true
-ModiaResult.hasSignal(       result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = haskey(result, name)
+ModiaResult.timeSignalName(result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = "time"
+ModiaResult.signalNames(   result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
+ModiaResult.hasSignal(     result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = haskey(result, name)
+ModiaResult.signal(        result::AbstractDict{T1,T2}, name::String; unitless=false) where {T1<:AbstractString,T2} = unitless ? ustrip.(result[name]) : result[name]
+function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::SignalInfo where {T1<:AbstractString,T2}
+    sig = result[name]
+    if name == timeSignalName(result)
+        kind    = Independent
+        sigUnit = unitAsString(sig[1] 
+        value = missing
+    else
+        if typeof(sig) <: OneValueVector
+            kind  = Constant
+            value = sig.value
+        end
+    end
+    SignalInfo(kind, VariableType, unit, value, "", false)
+end
+
 
 
 
@@ -37,10 +49,9 @@ ModiaResult.defaultHeading(  result::ResultDict)               = result.defaultH
 
 
 # Overloaded methods for DataFrames
-ModiaResult.timeSignalName(  result::DataFrames.DataFrame) = DataFrames.names(result, 1)[1]
-ModiaResult.hasOneTimeSignal(result::DataFrames.DataFrame) = true
-ModiaResult.rawSignal(       result::DataFrames.DataFrame, name::AbstractString) = ([result[!,1]], [result[!,name]], name == timeSignalName(result) ? ModiaResult.Independent : ModiaResult.Continuous)
-ModiaResult.signalNames(     result::DataFrames.DataFrame) = DataFrames.names(result)
+ModiaResult.timeSignalName(result::DataFrames.DataFrame) = DataFrames.names(result, 1)[1]
+ModiaResult.signalNames(   result::DataFrames.DataFrame) = DataFrames.names(result)
+ModiaResult.signal(        result::DataFrames.DataFrame, name::AbstractString; unitless=false) = ([result[!,1]], [result[!,name]], name == timeSignalName(result) ? ModiaResult.Independent : ModiaResult.Continuous)
  
 
  
@@ -76,3 +87,4 @@ function ModiaResult.hasOneTimeSignal(result)
         @error "hasOneTimeSignal(result) is not supported for typeof(result) = " * string(typeof(result))
     end
 end
+=#

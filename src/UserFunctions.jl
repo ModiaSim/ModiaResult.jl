@@ -311,9 +311,6 @@ If `name` is not valid, or no signal values are available, the function returns
   and `sigLegend[i]` is the legend for the i-th column of `sig`, if `sig` is a matrix.
   For example, if variable `"a.b.c"` has unit `m/s`, then `sigName = "a.b.c[2,3:5]"` results in
   `sigLegend = ["a.b.c[2,3] [m/s]", "a.b.c[2,3] [m/s]", "a.b.c[2,5] [m/s]"]`.
-
-- `ysigType::`[`SignalType`](@ref): The signal type of `ysig` (either `ModiaResult.Continuous`
-  or `ModiaResult.Clocked`).
 """
 function signalValuesForPlotting(result, name::AbstractString)
     return (nothing,nothing)

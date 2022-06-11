@@ -6,255 +6,10 @@
 #
 # Utility functions that are usually not directly called.
 
-using  Unitful
-import OrderedCollections
-import DataFrames
-import Measurements
-import MonteCarloMeasurements
-import Pkg
-isinstalled(pkg::String) = any(x -> x.name == pkg && x.is_direct_dep, values(Pkg.dependencies()))
-
-const AvailableModiaPlotPackages = ["GLMakie", "WGLMakie", "CairoMakie", "PyPlot", "NoPlot", "SilentNoPlot"]
-const ModiaPlotPackagesStack = String[]
-
-
-"""
-    usePlotPackage(plotPackage::String)
-
-Define the ModiaPlot package that shall be used by command `ModiaResult.@usingModiaPlot`.
-If a ModiaPlot package is already defined, save it on an internal stack
-(can be reactivated with `usePreviousPlotPackage()`.
-
-Possible values for `plotPackage`:
-- `"GLMakie"`
-- `"WGLMakie"`
-- `"CairoMakie"`
-- `"PyPlot"`
-- `"NoPlot"`
-- `"SilentNoPlot"`
-
-# Example
-
-```julia
-import ModiaResult
-
-ModiaResult.usePlotPackage("GLMakie")
-
-module MyTest
-    ModiaResult.@usingModiaPlot
-
-    t = range(0.0, stop=10.0, length=100)
-    result = Dict{String,Any}("time" => t, "phi" => sin.(t))
-
-    plot(result, "phi")  # use GLMakie for the rendering
-end
-```
-"""
-function usePlotPackage(plotPackage::String; pushPreviousOnStack=true)::Bool
-    success = true
-    if plotPackage == "NoPlot" || plotPackage == "SilentNoPlot"
-        if  pushPreviousOnStack && haskey(ENV, "MODIA_PLOT")
-            push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
-        end
-        if plotPackage == "NoPlot"
-            ENV["MODIA_PLOT"] = "NoPlot"
-        else
-            ENV["MODIA_PLOT"] = "SilentNoPlot"
-        end
-    else
-        plotPackageName = "ModiaPlot_" * plotPackage
-        if plotPackage in AvailableModiaPlotPackages
-            # Check that plotPackage is defined in current environment
-            if isinstalled(plotPackageName)
-                if pushPreviousOnStack && haskey(ENV, "MODIA_PLOT")
-                    push!(ModiaPlotPackagesStack, ENV["MODIA_PLOT"])
-                end
-                ENV["MODIA_PLOT"] = plotPackage
-            else
-                @warn "... usePlotPackage(\"$plotPackage\"): Call ignored, since package $plotPackageName is not in your current environment"
-                success = false
-            end
-        else
-            @warn "\n... usePlotPackage(\"$plotPackage\"): Call ignored, since argument not in $AvailableModiaPlotPackages."
-            success = false
-        end
-    end
-    return success
-end
 
 
 
-"""
-    usePreviousPlotPackage()
-
-Pop the last saved ModiaPlot package from an internal stack
-and call `usePlotPackage(<popped ModiaPlot package>)`.
-"""
-function usePreviousPlotPackage()::Bool
-    if length(ModiaPlotPackagesStack) > 0
-        plotPackage = pop!(ModiaPlotPackagesStack)
-        success = usePlotPackage(plotPackage, pushPreviousOnStack=false)
-    else
-        @warn "usePreviousPlotPackage(): Call ignored, because nothing saved."
-        success = false
-    end
-    return success
-end
-
-
-"""
-    currentPlotPackage()
-
-Return the name of the plot package as a string that was
-defined with [`usePlotPackage`](@ref).
-For example, the function may return "GLMakie", "PyPlot" or "NoPlot" or
-or "", if no PlotPackage is defined.
-"""
-currentPlotPackage() = haskey(ENV, "MODIA_PLOT") ? ENV["MODIA_PLOT"] : ""
-
-
-
-"""
-    @usingModiaPlot()
-
-Execute `using XXX`, where `XXX` is the ModiaPlot package that was
-activated with `usePlotPackage(plotPackage)`.
-"""
-macro usingModiaPlot()
-    if haskey(ENV, "MODIA_PLOT")
-        ModiaPlotPackage = ENV["MODIA_PLOT"]
-        if !(ModiaPlotPackage in AvailableModiaPlotPackages)
-            @warn "ENV[\"MODIA_PLOT\"] = \"$ModiaPlotPackage\" is not supported!. Using \"NoPlot\"."
-            @goto USE_NO_PLOT
-        elseif ModiaPlotPackage == "NoPlot"
-            @goto USE_NO_PLOT
-        elseif ModiaPlotPackage == "SilentNoPlot"
-            expr = :( import ModiaResult.SilentNoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
-            return esc( expr )
-        else
-            ModiaPlotPackage = Symbol("ModiaPlot_" * ModiaPlotPackage)
-            expr = :(using $ModiaPlotPackage)
-            println("$expr")
-            return esc( :(using $ModiaPlotPackage) )
-        end
-
-    else
-        @warn "No plot package activated. Using \"NoPlot\"."
-        @goto USE_NO_PLOT
-    end
-
-    @label USE_NO_PLOT
-    expr = :( import ModiaResult.NoPlot: plot, showFigure, saveFigure, closeFigure, closeAllFigures )
-    println("$expr")
-    return esc( expr )
-end
-
-
-const signalTypeToString = ["Independent", "Continuous", "Clocked"]
-
-
-"""
-    resultInfo(result)
-
-Return information about the result as DataFrames.DataFrame object
-with columns:
-
-```julia
-name::String, unit::String, nTime::String, signalType::String, valueSize::String, eltype::String
-```
-"""
-function resultInfo(result)
-    if isnothing(result)
-        @info "The call of showInfo(result) is ignored, since the argument is nothing."
-        return
-    end
-
-    name2       = String[]
-    unit2       = String[]
-    nTime2      = String[]
-    signalType2 = String[]
-    valueSize2  = String[]
-    eltype2     = String[]
-    
-    timeSigName = timeSignalName(result)
-    for name in signalNames(result)
-        (signalType, nTime, valueSize, elType, sigUnit, oneSigValue) = signalInfo2(result, name)
-        if isnothing(elType)
-            sigUnit3     = "???"
-            nTime3       = "???"
-            signalType3  = "???"
-            valueSize3   = "???"
-            eltype3      = "???"
-
-        else
-            sigUnit3    = sigUnit isa Nothing ? "???" : string(sigUnit)
-            nTime3      = name==timeSigName && !hasOneTimeSignal(result) ? "---" : (oneSigValue ? string(nTime)*"*" : string(nTime))
-            signalType3 = signalTypeToString[Int(signalType)]
-            valueSize3  = valueSize isa Nothing ? "()" : string(valueSize)
-            eltype3     = string(elType)
-        end
-
-        if signalType3 == "Independent"
-            pushfirst!(name2      , name)
-            pushfirst!(unit2      , sigUnit3)
-            pushfirst!(nTime2     , nTime3)
-            pushfirst!(signalType2, signalType3)
-            pushfirst!(valueSize2 , valueSize3)
-            pushfirst!(eltype2    , eltype3)
-        else
-            push!(name2      , name)
-            push!(unit2      , sigUnit3)
-            push!(nTime2     , nTime3)
-            push!(signalType2, signalType3)
-            push!(valueSize2 , valueSize3)
-            push!(eltype2    , eltype3)
-        end
-    end
-
-    resultInfoTable = DataFrames.DataFrame(name=name2, unit=unit2, nTime=nTime2, signalType=signalType2, valueSize=valueSize2, eltype=eltype2)
-
-    return resultInfoTable
-end
-
-
-
-"""
-    printResultInfo(result)
-
-Print info about result.
-
-# Example
-```julia
-using ModiaResult
-using Unitful
-ModiaResult.@usingModiaPlot
-
-t = range(0.0, stop=10.0, length=100)
-result = OrderedDict{String,Any}("time"=> t*u"s", 
-                                 "phi" => sin.(t)*u"rad", 
-                                 "A"   => OneValueVector(2.0, length(t)))
-printResultInfo(result)
-
-# Gives output:
- # │ name  unit  nTime  signalType  valueSize  eltype
-───┼───────────────────────────────────────────────────
- 1 │ time  s     100    Independent ()         Float64
- 2 │ phi   rad   100    Continuous  ()         Float64
- 3 | A           100*   Continuous  ()         Float64
- *: Signal stored as ModiaResult.OneValueVector (e.g. parameter)
-```
-
-"""
-function printResultInfo(result)::Nothing
-    resultInfoTable = resultInfo(result)
-    show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)
-    println(stdout)
-    println("*: Signal stored as ModiaResult.OneValueVector (e.g. parameter)\n")
-    return nothing
-end
-
-
-
+#=
 """
     ResultDict(args...; defaultHeading="", hasOneTimeSignal=true)
 
@@ -274,44 +29,41 @@ Return a new ResultDict dictionary (is based on OrderedCollections.OrderedDict).
 ```julia
 using ModiaResult
 
-time0 = [0.0, 7.0]
-t     = ([time0], [time0], ModiaResult.Independent)
-
 time1 = 0.0 : 0.1  : 2.0
-time2 = 3.0 : 0.01 : 3.5
-time3 = 5.0 : 0.1  : 7.0
-sigA1 = sin.(time1)u"m"
-sigA2 = cos.(time2)u"m"
-sigA3 = sin.(time3)u"m"
-sigA  = ([time1, time2, time3],
-         [sigA1, sigA2, sigA3 ],
-         ModiaResult.SignalType)
-sigB  = ([time2], [sin.(time2)], ModiaResult.SignalType)
-sigC  = ([time3], [sin.(time3)], ModiaResult.Clocked)
+time2 = 2.0 : 0.01 : 3.5
+time3 = 3.5 : 0.1  : 7.0
+
+t = collect(time1)
+push!(t, collect(time2))
+push!(t, collect(time3))
+
+sigA = sin.(time1)u"m"
+push!(sigA, cos.(time2)u"m")
+puhs!(sigA, sin.(time3)u"m")
+
+sigB = fill(missing, length(t1))
+push!(sigB, sin.(time2))
+push!(sigB, fill(missing, length(t3)))
+
+sigC = fill(missing, length(t1))
+push!(sigC,fill(missing, length(t2)))
+push!(sigC, sin.(time3))
 
 result = ModiaResult.ResultDict("time" => t,
                                 "sigA" => sigA,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
-                                defaultHeading = "Three test signals",
-                                hasOneTimeSignal = false)
-showInfo(result)
+                                defaultHeading = "Three test signals")
+printResultInfo(result)
 ```
 """
-struct ResultDict    <: AbstractDict{String,Tuple{Any,Any,SignalType}}
-    dict::OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}
+struct ResultDict <: AbstractDict{String,Union{Any,Missing}}
+    dict::OrderedCollections.OrderedDict{String,Union{Any,Missing}}
     defaultHeading::String
-    hasOneTimeSignal::Bool
 
-    ResultDict(args...; defaultHeading="", hasOneTimeSignal=true) =
-        new(OrderedCollections.OrderedDict{String,Tuple{Any,Any,SignalType}}(args...),
-            defaultHeading, hasOneTimeSignal)
+    ResultDict(args...; defaultHeading="") =
+        new(OrderedCollections.OrderedDict{String,Union{Any,Missing}}(args...), defaultHeading)
 end
-
-
-        #new(OrderedCollections.OrderedDict{String,Tuple{Vector{AbstractVector},
-        #                                            Vector{AbstractVector},
-        #                                            ModiaResult.SignalType}}(args...),
 
 # Overload AbstractDict methods
 Base.haskey(result::ResultDict, key) = Base.haskey(result.dict, key)
@@ -389,31 +141,6 @@ function hasDimensionMismatch(signal, signalName, timeSignal, timeSignalName::Ab
         return true
     end
     return false
-end
-
-
-
-"""
-    (sigType, nTime, sigSize, sigElType, sigUnit) = signalInfo(result, name)
-
-Return information about a signal, given the `name` of the signal in `result`:
-
-- `sigType::SignalType`: Ìnterpolation type of signal.
-
-- `nTime::Int`: Number of signal time points.
-
-- `sigSize`: size(signal[1][1])
-
-- `sigElType`: ustrip( eltype(signal[1][1]) ), that is the element type of the signal without unit.
-
-- `sigUnit`: Unit of signal
-
-If `name` is defined, but no signal is available (= nothing, missing or zero length),
-return `nTime=0` and `nothing` for `sigSize, sigElType, sigUnit`.
-"""
-function signalInfo(result, name::AbstractString)
-    (sigType, nTime, valueSize, valueElType, valueUnit, oneSigValue) = signalInfo2(result,name)
-    return (sigType, nTime, valueSize, valueElType, valueUnit)
 end
 
 
@@ -770,3 +497,4 @@ function prepend!(prefix::AbstractString, signalLegend::Vector{AbstractString})
    return signalLegend
 end
 
+=#
