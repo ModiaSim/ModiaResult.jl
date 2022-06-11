@@ -9,8 +9,9 @@ makedocs(
      "Home"               => "index.md",
      "Getting Started"    => "GettingStarted.md",     
 	 "Functions"          => "Functions.md",
-     "Abstract Interface" => "AbstractInterface.md",
-  	 "Internal"           => "Internal.md",
+	 "Internal"  => [
+       "internal/AbstractInterface.md"
+      ],
   ]
 )
 
