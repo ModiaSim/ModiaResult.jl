@@ -19,7 +19,7 @@ result["r"]    = [[0.4 * cos(t[i]),
                    0.3 * cos(t[i])] for i in eachindex(t)]*u"m"
 
 println("\n... test_25_SeveralFigures:")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ("phi", "r")       , heading="First figure" , figure=1)
 plot(result, ["w", "w2", "r[2]"], heading="Second figure", figure=2)

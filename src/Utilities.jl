@@ -54,7 +54,7 @@ result = ModiaResult.ResultDict("time" => t,
                                 "sigB" => sigB,
                                 "sigC" => sigC,
                                 defaultHeading = "Three test signals")
-printResultInfo(result)
+showResultInfo(result)
 ```
 """
 struct ResultDict <: AbstractDict{String,Union{Any,Missing}}

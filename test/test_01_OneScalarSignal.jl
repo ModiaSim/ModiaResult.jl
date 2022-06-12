@@ -12,8 +12,9 @@ result["time"] = t
 result["phi"]  = sin.(t)
 
 println("\n... test_01_OneScalarSignal.jl:\n")
-ModiaResult.printResultInfo(result)
 
-plot(result, "phi", heading="sine(time)")
+ModiaResult.showResultInfo(result)
+
+#plot(result, "phi", heading="sine(time)")
 
 end

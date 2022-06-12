@@ -19,7 +19,7 @@ result["r"]    = [[0.4 * cos(t[i]),
                    0.3 * cos(t[i])] for i in eachindex(t)]*u"m"
 
 println("\n... test_26_TooManyLegends:")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ("phi", "r", "w", "w2"), 
      maxLegend = 5,

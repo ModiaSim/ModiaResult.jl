@@ -14,30 +14,46 @@ import DataFrames
 import Tables
 import OrderedCollections
 
-
 # Overloaded methods for AbstractDict{String,T}
 ModiaResult.timeSignalName(result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = "time"
 ModiaResult.signalNames(   result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
 ModiaResult.hasSignal(     result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = haskey(result, name)
-ModiaResult.signal(        result::AbstractDict{T1,T2}, name::String; unitless=false) where {T1<:AbstractString,T2} = unitless ? ustrip.(result[name]) : result[name]
+ModiaResult.signalValues(  result::AbstractDict{T1,T2}, name::String; unitless=false) where {T1<:AbstractString,T2} = unitless ? ustrip.(result[name]) : result[name]
 function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::SignalInfo where {T1<:AbstractString,T2}
-    sig = result[name]
-    if name == timeSignalName(result)
-        kind    = Independent
-        sigUnit = unitAsString(sig[1] 
-        value = missing
-    else
-        if typeof(sig) <: OneValueVector
-            kind  = Constant
-            value = sig.value
+    sig     = result[name]
+    sigDims = size(sig)
+
+    if isOneValueSignal(sig)
+        kind = ModiaResult.Constant
+        if typeof(sig.value) <: Number || typeof(sig.value) <: AbstractArray && eltype(sig.value) <: Number
+            sigUnit = unitAsParseableString(sig.value)  
+            value = ustrip.(sig.value)
+            elementType = typeof(value)
+        else
+            sigUnit = ""
+            value   = sig.value
+            elementType = typeof(value)
         end
-    end
-    SignalInfo(kind, VariableType, unit, value, "", false)
+    else
+        sigUnit     = unitAsParseableString(sig)
+        elementType = eltype(ustrip.(sig))
+        value       = missing
+        
+        if name == timeSignalName(result)
+            kind = ModiaResult.Independent
+        else
+            kind = ModiaResult.Continuous
+        end        
+    end          
+
+    SignalInfo(kind, elementType, sigDims, sigUnit, value, "", false)
 end
 
+# Overloaded methods for OrderedDict{String,T}   # Rest is the same as for AbstractDict
+ModiaResult.timeSignalName(result::OrderedCollections.OrderedDict{T1,T2}) where {T1<:AbstractString,T2} = first(result).first
 
 
-
+#=
 # Overloaded methods for ModiaResult.ResultDict
 ModiaResult.rawSignal(       result::ResultDict, name::String) = result.dict[name]
 ModiaResult.signalNames(     result::ResultDict)               = collect(keys(result.dict))

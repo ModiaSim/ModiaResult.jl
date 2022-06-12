@@ -151,7 +151,7 @@ are different to the Python 2.x version.
 
 ### Version 0.4.2
 
-- `printResultInfo(..)` and `resultInfo(..)` improved
+- `showResultInfo(..)` and `resultInfo(..)` improved
   (signals with one value defined with ModiaResult.OneValueVector are specially marked,
   for example parameters).
 

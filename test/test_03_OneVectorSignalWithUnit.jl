@@ -15,7 +15,7 @@ result["r"]    = [[0.4 * cos(t[i]),
                    0.3 * cos(t[i])] for i in eachindex(t)]*u"m"
 
 println("\n... test_03_OneVectorSignalWithUnit.jl:")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ["r", "r[2]", "r[2:3]"], heading="Plot vector signals")
 

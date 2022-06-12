@@ -18,29 +18,29 @@ The functions below are provided to operate on a result data structures, especia
 
 
 !!! note
-    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) does **not** export any symbols.\
-    [Modia.jl](https://github.com/ModiaSim/Modia.jl) exports all the symbols and uses as
-    *result* argument `instantiatedModel` (= returned from `@Modia.instantiatedModel(model, ...)`).
+    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) exports all symbols with exception of VariableKind.\
+    [Modia.jl](https://github.com/ModiaSim/Modia.jl) reexports all symbols and uses as *result* argument `instantiatedModel`.
 
-| Functions                         | Description                                                                                    |
-|:----------------------------------|:-----------------------------------------------------------------------------------------------|
-| [`printResultInfo`](@ref)         | Print info of the result on stdout.                                                            |
-| [`resultInfo`](@ref)              | Return info about the result as [DataFrame](https://github.com/JuliaData/DataFrames.jl) table. |
-| [`hasSignal`](@ref)               | Return true if a signal name is known.                                                         |
-| [`timeSignalName`](@ref)          | Return signal name of the independent variable.                                                |
-| [`signalNames`](@ref)             | Return all signal names (including independent variable).                                      |
-| [`SignalInfo`](@ref)              | Return info about a signal.                                                                    |
-| [`VariableKind`](@ref)            | `@enum` used in [`SignalInfo`](@ref)                                                           |
-| [`lastSignalValue`](@ref)         | Return last (non-missing) value of one signal (useful e.g. for @test)                          |
-| [`signalValues`](@ref)            | Return values of one signal as an array (**potentially with** `missing` values).               |
-| [`signalValuesForPlotting`](@ref) | Return values of one signal prepared for a plot package, including signal legend               |
-|                                   | (return `Vector` or `Matrix` with potentially `NaN` but **no** `missing` values).              |
-| [`defaultHeading`](@ref)          | Return default heading of result data structure (e.g. for a plot window).                      |
-| [`unitAsParseableString`](@ref)   | Return the unit of a number or array as a string that is parseable with `Unitful.uparse`.      |
+| Result functions                   | Description                                                                                    |
+|:-----------------------------------|:-----------------------------------------------------------------------------------------------|
+| [`showResultInfo`](@ref)           | Print info of the result on stdout.                                                            |
+| [`resultInfo`](@ref)               | Return info about the result as [DataFrame](https://github.com/JuliaData/DataFrames.jl) table. |
+| [`hasSignal`](@ref)                | Return true if a signal name is known in a result                                              |
+| [`timeSignalName`](@ref)           | Return signal name of the independent variable of a result                                     |
+| [`signalNames`](@ref)              | Return all signal names (including independent variable) of a result                           |
+| [`SignalInfo`](@ref)               | Return info about a signal.                                                                    |
+| [`ModiaResult.VariableKind`](@ref) | `@enum` used in [`SignalInfo`](@ref)                                                           |
+| [`lastSignalValue`](@ref)          | Return last value of one signal (useful e.g. for @test)                                        |
+| [`signalValues`](@ref)             | Return values of one signal as an array (**potentially with** `missing` values).               |
+| [`signalValuesForPlotting`](@ref)  | Return values of one signal prepared for a plot package, including signal legend               |
+|                                    | (return `Vector` or `Matrix` with potentially `NaN` but **no** `missing` values).              |
+| [`defaultHeading`](@ref)           | Return default heading of result data structure (e.g. for a plot window).                      |
+| [`quantity`](@ref)                 | Return Quantity from numberType and numberUnit, e.g. `quantity(Float64,u"m/s")`.               |
+| [`OneValueSignal`](@ref)           | Return a view to one value as an array signal, e.g. `OneValueSignal("data.txt",100)`           |
 
 
 ```@docs
-printResultInfo
+showResultInfo
 resultInfo
 hasSignal
 timeSignalName
@@ -51,7 +51,8 @@ lastSignalValue
 signalValues
 signalValuesForPlotting
 defaultHeading
-unitAsParseableString
+quantity
+OneValueSignal
 ```
 
 
@@ -91,8 +92,8 @@ ModiaResult.usePreviousPlotPackage()
 The following functions are provided to define/inquire the current plot package.
 
 !!! note
-    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) does **not** export any symbols.\
-    [Modia.jl](https://github.com/ModiaSim/Modia.jl) exports all the symbols.
+    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) exports all symbols.\
+    [Modia.jl](https://github.com/ModiaSim/Modia.jl) reexports all symbols.
     
 | Functions                        | Description                                               |
 |:---------------------------------|:----------------------------------------------------------|
@@ -132,9 +133,8 @@ using Modia
 have been executed. The documentation below was generated with ModiaPlot_PyPlot.
 
 !!! note
-    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) does **not** export any symbols.\
-    [Modia.jl](https://github.com/ModiaSim/Modia.jl) exports all the symbols and uses as
-    *result* argument `instantiatedModel` (= returned from `@Modia.instantiatedModel(model, ...)`).
+    [ModiaResult.jl](https://github.com/ModiaSim/ModiaResult.jl) exports all symbols.\
+    [Modia.jl](https://github.com/ModiaSim/Modia.jl) reexports all symbols and uses as *result* argument `instantiatedModel`.
 
 | Functions                                    | Description                                               |
 |:---------------------------------------------|:----------------------------------------------------------|

@@ -31,7 +31,7 @@ result = ModiaResult.ResultDict("time" => t0,
                                 hasOneTimeSignal = false)  
 
 println("\n... test_72_ResultDictWithMatrixOfPlots.jl:\n")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
 

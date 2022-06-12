@@ -11,7 +11,7 @@ Functions that are marked as *required*, need to be defined for a new result dat
 Functions that are marked as *optional* have a default implementation, but can be defined for 
 a new result data structure.
 
-| Functions                 | Description                                                   |
+| Result functions          | Description                                                   |
 |:--------------------------|:--------------------------------------------------------------|
 | [`timeSignalName`](@ref)  | Return signal name of the independent variable (*required*).  |
 | [`signalNames`](@ref)     | Return all signal names (*required*).                         |
@@ -28,4 +28,3 @@ a new result data structure.
 - [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) (tabular data; first column is independent variable)
 - [Tables.jl](https://github.com/JuliaData/Tables.jl) (abstract interface for tabular data, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables; first column is independent variable),
 - AbstractDict dictionaries with String keys (if OrderedDict, independent variable is first variable, otherwise independent variable is "time").
-

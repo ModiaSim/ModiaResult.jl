@@ -17,7 +17,7 @@ result["w2"]   = 0.6 * cos.(t)u"rad/s"
 result["A"]    = ModiaResult.OneValueVector(0.6, length(t))
 
 println("\n... test_20_SeveralSignalsInOneDiagram:")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ("phi", "phi2", "w", "w2", "A"), heading="Several signals in one diagram")
 

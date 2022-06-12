@@ -29,11 +29,11 @@ Kind of variables:
 |:------------------------|:---------------------------------------------------------------------------------|
 | ModiaResult.Independent | Independent variable (usually "time")                                            |
 | ModiaResult.Constant    | Variable is constant                                                             |
-| ModiaResult.Invariant   | Variable is defined for all segments of a segmented result (no `missing` values) |
-| ModiaResult.Segmented   | Variable is defined for a subset of segments (variable has `missing` values)     |
+| ModiaResult.Continuous  | Variable is piecewise continuous                                                 |
+| ModiaResult.Clocked     | Variable is clocked (only defined when a clock ticks, otherwise value = missing) |
 | ModiaResult.Eliminated  | Variable is eliminated and is an alias or negative alias of another variable     |
 """
-@enum VariableKind Independent Constant Invariant Segmented Eliminated
+@enum VariableKind Independent Constant Continuous Clocked Eliminated
 
 
 """
@@ -44,8 +44,9 @@ Return information about signal `name` of `result`.
 | Returned info:          | Description                                                                      |
 |:------------------------|:---------------------------------------------------------------------------------|
 | `info.kind`             | Kind of variable (see `@enum `[`VariableKind`](@ref))                            |
-| `info.VariableType`     | Type of variable (without unit)                                                  |
-| `info.unit`             | Unit of variable as string which is parseable with `Unitful.uparse` or `""`      |
+| `info.elementType`      | Element type of signal (without unit)                                            |
+| `info.dims`             | Dimensions of signal                                                             |
+| `info.unit`             | Unit of signal as string which is parseable with `Unitful.uparse` or `""`        |
 | `info.value`            | Value, if info.kind = ModiaResult.Constant (otherwise `missing`)                 |
 | `info.aliasName`        | Alias name, if info.kind = ModiaResult.Eliminated (otherwise `""`)               |
 | `info.aliasNegate`      | = true, if alias values must be negated (if info.kind = ModiaResult.Eliminated)  |
@@ -54,7 +55,8 @@ Note, `info.aliasName` and `info.aliasNegate` is only supported by [Modia.jl](ht
 """
 struct SignalInfo
     kind::VariableKind
-    VariableType::DataType
+    elementType
+    dims::Dims
     unit::String
     
     # If kind = Constant
@@ -72,6 +74,7 @@ end
 returns the values of signal `name` from `result` as an array s such that `s[i,...]` is the
 value of the signal at time instant `i`. 
 If `s` is not defined at `i`, its value is `missing`.
+
 
 # Examples
 

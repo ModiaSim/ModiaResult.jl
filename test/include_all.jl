@@ -1,4 +1,4 @@
-include("test_00_Units.jl")
+include("test_00_BasicTests.jl")
 
 include("test_01_OneScalarSignal.jl")
 include("test_02_OneScalarSignalWithUnit.jl")

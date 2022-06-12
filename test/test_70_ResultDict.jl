@@ -27,7 +27,7 @@ result = ModiaResult.ResultDict("time" => t,
                                 defaultHeading = "Signals from test_70_ResultDict.jl")  
 
 println("\n... test_70_ResultDict.jl:\n")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ("sigA", "sigB", "sigC"))
 

@@ -19,8 +19,8 @@ result2["phi"]  = 1.2*sin.(t)u"rad"
 result2["w"]    = 0.8*cos.(t)u"rad/s"
 
 println("\n... test_24_Reuse:")
-ModiaResult.printResultInfo(result1)
-ModiaResult.printResultInfo(result2)
+ModiaResult.showResultInfo(result1)
+ModiaResult.showResultInfo(result2)
 
 plot(result1, ("phi", "w"), prefix="Sim 1:", heading="Test reuse")
 plot(result2, ("phi", "w"), prefix="Sim 2:", reuse=true)

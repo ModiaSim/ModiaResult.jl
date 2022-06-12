@@ -18,7 +18,7 @@ result["open"]     = [true , true]
 result["Inertia"]  = [inertia, inertia]
 
 println("\n... test_04_ConstantSignalsWithUnit.jl:")
-ModiaResult.printResultInfo(result)
+ModiaResult.showResultInfo(result)
 
 plot(result, ["phi_max", "i_max", "open", "Inertia[2,2]", "Inertia[1,2:3]", "Inertia"], heading="Constants")
 
