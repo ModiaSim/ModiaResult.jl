@@ -46,7 +46,7 @@ The functions below are provided to operate on a result data structure, especial
 | [`SignalInfo`](@ref)               | Return info about a signal.                                                                    |
 | [`ModiaResult.VariableKind`](@ref) | `@enum` used in [`SignalInfo`](@ref)                                                           |
 | [`signalValues`](@ref)             | Return values of one signal as an array (**potentially with** `missing` values).               |
-| [`signalValuesForPlotting`](@ref)  | Return values of one signal prepared for a plot package, including signal legend               |
+| [`signalValuesForLinePlots`](@ref) | Return values of one signal prepared for a plot package, including signal legend               |
 |                                    | (return `Vector` or `Matrix` with potentially `NaN` but **no** `missing` values).              |
 | [`lastSignalValue`](@ref)          | Return last value of one signal (useful e.g. for @test)                                        |
 | [`defaultHeading`](@ref)           | Return default heading of result data structure (e.g. for a plot window).                      |
@@ -63,7 +63,7 @@ signalNames
 SignalInfo
 VariableKind
 signalValues
-signalValuesForPlotting
+signalValuesForLinePlots
 lastSignalValue
 defaultHeading
 quantity

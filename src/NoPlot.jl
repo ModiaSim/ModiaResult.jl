@@ -3,7 +3,7 @@
 
 module NoPlot
 
-include("AbstractPlotInterface.jl")
+include("AbstractLinePlotInterface.jl")
 
 plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true, xAxis="time", 
      figure::Int=1, prefix::AbstractString="", reuse::Bool=false, maxLegend::Integer=10, 

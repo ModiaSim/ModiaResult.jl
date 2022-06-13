@@ -21,7 +21,7 @@ function signalNames end
 
 
 """
-    @enum VariableKind Constant Invariant Segmented Eliminated
+    @enum VariableKind Independent Constant Continuous Clocked Eliminated
 
 Kind of variables:
 
@@ -128,65 +128,3 @@ Return default heading of result as a string
 (can be used as default heading for a plot).
 """
 defaultHeading(result) = ""
-
-
-#=
-"""
-    (signal, timeSignal, timeSignalName, signalType, arrayName, 
-     arrayIndices, nScalarSignals) = getSignalDetails(result, name)
-    
-Return the signal defined by `name::AbstractString` as
-`signal::Vector{Matrix{<:Real}}`.
-`name` may include an array range, such as "a.b.c[2:3,5]".
-In this case `arrayName` is the name without the array indices,
-such as `"a.b.c"`, `arrayIndices` is a tuple with the array indices,
-such as `(2:3, 5)` and `nScalarSignals` is the number of scalar
-signals, such as `3` if arrayIndices = `(2:3, 5)`. 
-Otherwise `arrayName = name, arrayIndices=(), nScalarSignals=1`.
-
-In case the signal is not known or `name` cannot be interpreted,
-`(nothing, nothing, nothing, nothing, name, (), 0)` is returned.
-
-It is required that the value of the signal at a time instant 
-has either `typeof(value) <: Real` or
-`typeof(value) = AbstractArray{Real, N}`.
-The following `Real` types are currently supported:
-
-1. `convert(Float64, eltype(value)` is supported
-   (for example Float32, Float64, DoubleFloat, Rational, Int32, Int64, Bool).
-  
-2. Measurements.Measurement{<Type of (1)>}.
-
-3. MonteCarloMeasurements.StaticParticles{<Type of (1)>}.
-
-4. MonteCarloMeasurements.Particles{<Type of (1)>}.
-"""
-function getSignalDetails end
-
-
-"""
-    (x,y,xLegend,yLegend) = plotSignal(result, name)
-
-returns signal `name` of `result` in a form, so that a standard `plot(x,y)` command can be executed. 
-In particular this means:
-
-- Units are removed from the signals.
-- Signals are returned in compact form (see [`signal`](@ref)).
-  If the compact form has more as two dimensions, it is reshaped to a matrix
-  (so, `y` is either a vector or a matrix; if `y` is a matrix, every column corresponds to one signal element).
-"""
-function plotSignal(result, name)
-    xName = timeSignalName(result)
-    xInfo = signalInfo(result,xName)
-    yName = name
-    yInfo = signalInfo(result,yName)
-    x = signal(result,xName,unitless=true)
-    y = signal(result,yName,unitless=true,compact=true)
-    if ndims(y) > 2
-        ysize = size(y)
-        y = reshape(y, (ysize[1], prod(ysize[2:end])))
-    end
-    return (x,y,xName,yName)
-end
-
-=#

@@ -387,7 +387,7 @@ nameWithUnit(name::String, unit::String) = unit == "" ? name : string(name, " ["
 
 
 """
-    (sig, legend, kind) = signalValuesForPlotting(result, name)
+    (sig, legend, kind) = signalValuesForLinePlots(result, name)
 
 Given the result data structure `result` and a variable `name::AbstractString` with
 or without array range indices (for example `name = "a.b.c[2,3:5]"`) 
@@ -415,7 +415,7 @@ is printed and `(nothing, nothing, nothing)` is returned.
   
 - `kind::`[`ModiaResult.VariableKind`](@ref): The variable kind (independent, constant, continuous, ...).
 """
-function signalValuesForPlotting(result, name::String)
+function signalValuesForLinePlots(result, name::String)
     sigPresent = false
     negate     = false
     
@@ -594,7 +594,7 @@ function signalValuesForPlotting(result, name::String)
     return (sig, legend, sigKind)
     
     @label ERROR
-    @warn "\"$name\" is ignored, because is not defined or is not correct or has no values."
+    @warn "\"$name\" is ignored, because it is not defined or is not correct or has no values."
     return (nothing,nothing,nothing)
 end
 

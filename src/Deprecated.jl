@@ -5,6 +5,86 @@
 using Unitful
 import OrderedCollections
 
+#=
+"""
+    @enum ModiaResult.SignalType
+    
+Defines the type of the signal. Supported values:
+- `ModiaResult.Independent`: Independent variable (usually the time signal).
+- `ModiaResult.Continuous`: Piece-wise continuous signal (typically linearly interpolated).
+- `ModiaResult.Clocked`: Clocked signal
+  (values are only defined at the corresponding `Time` signal time instants and have
+   no value in between; the latter might be signaled by piece-wise constant 
+   dotted lines).   
+"""
+@enum SignalType Independent=1 Continuous=2 Clocked=3
+=#
+
+
+
+"""
+    (xsig, xsigLegend, ysig, ysigLegend, ysigType) = getPlotSignal(result, ysigName; xsigName=nothing)
+
+Given the result data structure `result` and a variable `ysigName::AbstractString` with
+or without array range indices (for example `ysigName = "a.b.c[2,3:5]"`) and an optional
+variable name `xsigName::AbstractString` for the x-axis, return
+
+- `xsig::Vector{T1<:Real}`: The vector of the x-axis signal without a unit. Segments are concatenated
+  and separated by NaN.
+
+- `xsigLegend::AbstractString`: The legend of the x-axis consisting of the x-axis name
+  and its unit (if available).
+
+- `ysig::Vector{T2}` or `::Matrix{T2}`: the y-axis signal, either as a vector or as a matrix
+  of values without units depending on the given name. For example, if `ysigName = "a.b.c[2,3:5]"`, then
+  `ysig` consists of a matrix with three columns corresponding to the variable values of
+  `"a.b.c[2,3]", "a.b.c[2,4]", "a.b.c[2,5]"` with the (potential) units are stripped off.
+  Segments are concatenated and separated by NaN.
+
+- `ysigLegend::Vector{AbstractString}`: The legend of the y-axis as a vector
+  of strings, where `ysigLegend[1]` is the legend for `ysig`, if `ysig` is a vector,
+  and `ysigLegend[i]` is the legend for the i-th column of `ysig`, if `ysig` is a matrix.
+  For example, if variable `"a.b.c"` has unit `m/s`, then `ysigName = "a.b.c[2,3:5]"` results in
+  `ysigLegend = ["a.b.c[2,3] [m/s]", "a.b.c[2,3] [m/s]", "a.b.c[2,5] [m/s]"]`.
+
+- `ysigType::`[`VariableKind`](@ref): The variable kind of `ysig` (either `ModiaResult.Continuous`
+  or `ModiaResult.Clocked`).
+
+If `ysigName` is not valid, or no signal values are available, the function returns
+`(nothing, nothing, nothing, nothing, nothing)`, and prints a warning message.
+"""
+function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
+    (ySig, ysigLegend, ysigKind) = signalValuesForLinePlots(result, ysigName)
+    if isnothing(ysig)
+        @goto ERROR
+    end
+    
+    xsigName2 = isnothing(xsigName) ? timeSignalName(result) : xsigName
+    (xSig, xsigLegend, xsigKind) = signalValuesForLinePlots(result, xsigName)
+    if isnothing(xsig)
+        @goto ERROR
+    end    
+
+    # Check x-axis signal
+    xsigValue = first(xsig)
+    if ndims(xSig) != 1
+        @warn "\"$xsigName\" does not characterize a scalar variable as needed for the x-axis."
+        @goto ERROR
+    elseif !(typeof(xsigValue) <: Real                                   || 
+             typeof(xsigValue) <: Measurements.Measurement               ||
+             typeof(xsigValue) <: MonteCarloMeasurements.StaticParticles ||
+             typeof(xsigValue) <: MonteCarloMeasurements.Particles       )
+        @warn "\"$xsigName\" is of type " * string(typeof(xsigValue)) * " which is not supported for the x-axis."
+        @goto ERROR        
+    end
+
+    return (xsig2, xsigLegend, ysig2, ysigLegend, ysigKind)
+
+    @label ERROR
+    return (nothing, nothing, nothing, nothing, nothing)
+end
+
+
 
 """
     ResultDict(args...; defaultHeading="", hasOneTimeSignal=true)
@@ -238,3 +318,62 @@ Base.IndexStyle(::Type{<:FlattenedSignalView})      = IndexLinear()
 
 
 
+#=
+"""
+    (signal, timeSignal, timeSignalName, signalType, arrayName, 
+     arrayIndices, nScalarSignals) = getSignalDetails(result, name)
+    
+Return the signal defined by `name::AbstractString` as
+`signal::Vector{Matrix{<:Real}}`.
+`name` may include an array range, such as "a.b.c[2:3,5]".
+In this case `arrayName` is the name without the array indices,
+such as `"a.b.c"`, `arrayIndices` is a tuple with the array indices,
+such as `(2:3, 5)` and `nScalarSignals` is the number of scalar
+signals, such as `3` if arrayIndices = `(2:3, 5)`. 
+Otherwise `arrayName = name, arrayIndices=(), nScalarSignals=1`.
+
+In case the signal is not known or `name` cannot be interpreted,
+`(nothing, nothing, nothing, nothing, name, (), 0)` is returned.
+
+It is required that the value of the signal at a time instant 
+has either `typeof(value) <: Real` or
+`typeof(value) = AbstractArray{Real, N}`.
+The following `Real` types are currently supported:
+
+1. `convert(Float64, eltype(value)` is supported
+   (for example Float32, Float64, DoubleFloat, Rational, Int32, Int64, Bool).
+  
+2. Measurements.Measurement{<Type of (1)>}.
+
+3. MonteCarloMeasurements.StaticParticles{<Type of (1)>}.
+
+4. MonteCarloMeasurements.Particles{<Type of (1)>}.
+"""
+function getSignalDetails end
+
+
+"""
+    (x,y,xLegend,yLegend) = plotSignal(result, name)
+
+returns signal `name` of `result` in a form, so that a standard `plot(x,y)` command can be executed. 
+In particular this means:
+
+- Units are removed from the signals.
+- Signals are returned in compact form (see [`signal`](@ref)).
+  If the compact form has more as two dimensions, it is reshaped to a matrix
+  (so, `y` is either a vector or a matrix; if `y` is a matrix, every column corresponds to one signal element).
+"""
+function plotSignal(result, name)
+    xName = timeSignalName(result)
+    xInfo = signalInfo(result,xName)
+    yName = name
+    yInfo = signalInfo(result,yName)
+    x = signal(result,xName,unitless=true)
+    y = signal(result,yName,unitless=true,compact=true)
+    if ndims(y) > 2
+        ysize = size(y)
+        y = reshape(y, (ysize[1], prod(ysize[2:end])))
+    end
+    return (x,y,xName,yName)
+end
+=#
