@@ -10,8 +10,8 @@ makedocs(
      "Getting Started"    => "GettingStarted.md",     
 	 "Functions"          => "Functions.md",
 	 "Internal"  => [
-       "internal/AbstractInterface.md",
-       "internal/AbstractPlotInterface.md",       
+       "internal/AbstractResultInterface.md",
+       "internal/AbstractLinePlotInterface.md",       
        "internal/UtilityFunctions.md"       
       ],
   ]

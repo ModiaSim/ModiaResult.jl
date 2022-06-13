@@ -1,11 +1,12 @@
-# Abstract Plot Interface
+# Abstract Line Plot Interface
 
 ```@meta
 CurrentModule = ModiaPlot_PyPlot
 ```
 
-This chapter documents the *abstract plot interface* for which an implementation has to be provided,
-in order that the corresponding plot package can be used from the functions of ModiaResult.
+This chapter documents the *abstract line plot interface* for which an implementation has to be provided,
+in order that the corresponding plot package can be used from the functions of ModiaResult to
+provide line plots in a convenient way.
 
 For every plot package `XXX.jl` an interface package `ModiaPlot_XXX.jl` has to be provided
 that implements the following functions (with exception of `plot`, all other functions

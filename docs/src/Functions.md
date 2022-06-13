@@ -125,7 +125,7 @@ currentPlotPackage
 ```
 
 
-## Plotting
+## Line Plots
 
 ```@meta
 CurrentModule = ModiaPlot_PyPlot

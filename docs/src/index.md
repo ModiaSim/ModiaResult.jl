@@ -29,14 +29,14 @@ The ModiaResult package provides an abstract interface to *operate* on such simu
 - to provide a *table view* of the signals via [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), or
 - to produce *line plots* in *multiple diagrams* within *multiple windows/figures* in a *convenient way* (see example below).
 
-*Concrete implementations* of the ModiaResult [Abstract Interface](@ref) are provided for:
+*Concrete implementations* of the ModiaResult [Abstract Result Interface](@ref) are provided for:
 
 - [Modia.jl](https://github.com/ModiaSim/Modia.jl) (a modeling and simulation environment)
 - [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) (tabular data; first column is independent variable)
 - [Tables.jl](https://github.com/JuliaData/Tables.jl) (abstract interface for tabular data, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables; first column is independent variable),
 - Dictionaries with String keys (if OrderedDict, independent variable is first variable, otherwise independent variable is "time").
 
-*Concrete implementations* of the ModiaResult [Abstract Plot Interface](@ref) are provided for:
+*Concrete implementations* of the ModiaResult [Abstract Line Plot Interface](@ref) are provided for:
 
 - [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with [Matplotlib](https://matplotlib.org/stable/) from Python), 
 - [GLMakie](https://github.com/JuliaPlots/GLMakie.jl) (interactive plots in an OpenGL window),
