@@ -4,7 +4,7 @@ using ModiaResult
 using ModiaResult.OrderedCollections
 using ModiaResult.Unitful
 using ModiaResult.MonteCarloMeasurements
-ModiaResult.@usingModiaPlot
+@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 c = ones(size(t,1))

@@ -6,7 +6,7 @@ export quantity
 export showResultInfo, resultInfo, timeSignalName, signalNames, SignalInfo
 export lastSignalValue, signalValues, signalValuesForLinePlots, defaultHeading
 export OneValueSignal, BaseType, unitAsParseableString
-export usingModiaPlot, usePlotPackage, usePreviousPlotPackage, currentPlotPackage
+export @usingModiaPlot, usePlotPackage, usePreviousPlotPackage, currentPlotPackage
 export plot, saveFigure, closeFigure, closeAllFigures, showFigure
 
 include("AbstractResultInterface.jl")

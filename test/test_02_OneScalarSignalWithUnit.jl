@@ -3,7 +3,7 @@ module test_02_OneScalarSignalWithUnit
 using ModiaResult
 using ModiaResult.Unitful
 using ModiaResult.OrderedCollections
-ModiaResult.@usingModiaPlot
+@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 
@@ -15,6 +15,6 @@ result["phi"]  = sin.(t)*u"rad"
 println("\n... test_02_OneScalarSignalWithUnit.jl:\n")
 ModiaResult.showResultInfo(result)
 
-#plot(result, "phi", heading="Sine(time)")
+plot(result, "phi", heading="Sine(time)")
 
 end

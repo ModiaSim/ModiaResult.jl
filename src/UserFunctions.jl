@@ -14,18 +14,25 @@ const AvailableModiaPlotPackages = ["GLMakie", "WGLMakie", "CairoMakie", "PyPlot
 const ModiaPlotPackagesStack = String[]
 
 
+QuantityBaseType(::Type{T})                       where {T}     = T
+QuantityBaseType(::Type{Unitful.Quantity{T,D,U}}) where {T,D,U} = T
+
+
 """
     BaseType(T)
 
-Return the base type of a type T, according to the following definition.
+Return the base type of a type T, according to the following definition:
 
 ```julia
+QuantityBaseType(::Type{T})                                   where {T}     = T
+QuantityBaseType(::Type{Unitful.Quantity{T,D,U}})             where {T,D,U} = T
+
 BaseType(::Type{T})                                           where {T}     = T
 BaseType(::Type{Unitful.Quantity{T,D,U}})                     where {T,D,U} = T
-BaseType(::Type{Measurements.Measurement{T}})                 where {T}     = T
-BaseType(::Type{MonteCarloMeasurements.Particles{T,N}})       where {T,N}   = T
-BaseType(::Type{MonteCarloMeasurements.StaticParticles{T,N}}) where {T,N}   = T
-BaseType(::Type{Array{T,N}}                                   where {T,N}   = BaseType(T)
+BaseType(::Type{Measurements.Measurement{T}})                 where {T}     = QuantityBaseType(T)
+BaseType(::Type{MonteCarloMeasurements.Particles{T,N}})       where {T,N}   = QuantityBaseType(T)
+BaseType(::Type{MonteCarloMeasurements.StaticParticles{T,N}}) where {T,N}   = QuantityBaseType(T)
+BaseType(::Type{Union{Missing,T}})                            where {T}     = BaseType(T)
 ```
 
 # Examples
@@ -37,10 +44,10 @@ BaseType(Vector{Measurement{Float64}})  # Float64
 """
 BaseType(::Type{T})                                           where {T}     = T
 BaseType(::Type{Unitful.Quantity{T,D,U}})                     where {T,D,U} = T
-BaseType(::Type{Measurements.Measurement{T}})                 where {T}     = T
-BaseType(::Type{MonteCarloMeasurements.Particles{T,N}})       where {T,N}   = T
-BaseType(::Type{MonteCarloMeasurements.StaticParticles{T,N}}) where {T,N}   = T
-BaseType(::Type{Array{T,N}})                                  where {T,N}   = BaseType(T)
+BaseType(::Type{Measurements.Measurement{T}})                 where {T}     = QuantityBaseType(T)
+BaseType(::Type{MonteCarloMeasurements.Particles{T,N}})       where {T,N}   = QuantityBaseType(T)
+BaseType(::Type{MonteCarloMeasurements.StaticParticles{T,N}}) where {T,N}   = QuantityBaseType(T)
+BaseType(::Type{Union{Missing,T}})                            where {T}     = BaseType(T)
 
 
 """
@@ -315,12 +322,12 @@ function resultInfo(result; sorted=true)
         else
             elementType         = sigInfo.elementType
             elementTypeAsString = string(elementType)
-            if !(elementType <: Number)
+            #if !(elementType <: Number)
                 i = findlast('.' , elementTypeAsString)
                 if !isnothing(i) && i < length(elementTypeAsString)
                     elementTypeAsString = elementTypeAsString[i+1:end]
                 end
-            end
+            #end
             push!(name2, name)
             push!(unit2, sigInfo.unit)
             push!(dims2, string(sigInfo.dims))
@@ -439,7 +446,7 @@ function signalValuesForLinePlots(result, name::String)
             
             # Collect information for legend
             arrayName = name  
-            arrayUnit = sigInfo.unit             
+            sigUnit   = sigInfo.unit             
             if length(dims) == 1
                 arrayIndices   = ()
                 nScalarSignals = 1        
@@ -458,14 +465,14 @@ function signalValuesForLinePlots(result, name::String)
                 arrayName = name[1:i-1]
                 indices   = name[i+1:end-1]
                 if hasSignal(result, arrayName)
-                    sigInfo = SignalInfo(result,name)
+                    sigInfo = SignalInfo(result,arrayName)
                     sigKind = sigInfo.kind
                     if sigKind == ModiaResult.Eliminated
                         sigInfo = SignalInfo(result,sigInfo.aliasName)
                         negate  = sigInfo.aliasNegate
                         sigKind = sigInfo.kind
                     end                    
-                    sig  = signalValues(result,name; unitless=true)
+                    sig  = signalValues(result,arrayName; unitless=true)
                     dims = size(sig)
  
                     if dims[1] > 0 
@@ -480,10 +487,10 @@ function signalValuesForLinePlots(result, name::String)
                         end
 
                         # Extract sub-array and collect info for legend
-                        sig       = getindex(sig, (:, arrayIndices...)...)
-                        arrayUnit = sigInfo.unit                         
-                        dims      = size(sig)
-                        nScalarSignals = prod(i for i in dims[2:end])
+                        sig     = getindex(sig, (:, arrayIndices...)...)
+                        sigUnit = sigInfo.unit                         
+                        dims    = size(sig)
+                        nScalarSignals = length(dims) == 1 ? 1 : prod(i for i in dims[2:end])
                         if length(dims) > 2
                             # Reshape to a matrix
                             sig  = reshape(sig, dims[1], nScalarSignals)
@@ -499,9 +506,19 @@ function signalValuesForLinePlots(result, name::String)
     
     # Check that sig can be plotted or convert it, so that it can be plotted
     sigElType = sigInfo.elementType
-    if sigElType in TypesForPlotting
+    if sigElType in TypesForPlotting ||
+       (sigElType <: Measurements.Measurement && BaseType(sigElType) in TypesForPlotting) ||
+       (sigElType <: MonteCarloMeasurements.AbstractParticles && BaseType(sigElType) in TypesForPlotting)
         # Signal can be plotted - do nothing
-        
+    
+    elseif sigElType <: Bool
+        # Transform to Int
+        sig2 = Array{Int, ndims(sig)}(undef, size(sig))       
+        for i = 1:length(sig)
+            sig2[i] = convert(Int, sig[i])
+        end
+        sig2 = sig
+    
     elseif isa(missing, sigElType) || isa(nothing, sigElType)
         # sig contains missing or nothing - try to remove and if necessary convert to Float64
         canBePlottedWithoutConversion = false
@@ -530,7 +547,7 @@ function signalValuesForLinePlots(result, name::String)
                 end
             catch
                 # Cannot be plotted
-                @warn "Signal \"$name\" is ignored, because its element type = $elementType\nand therefore its values cannot be plotted."
+                @warn "Signal \"$name\" is ignored, because its element type = $sigElType\nand therefore its values cannot be plotted."
                 return (nothing,nothing,nothing)
             end
             sig = sig2
@@ -538,14 +555,14 @@ function signalValuesForLinePlots(result, name::String)
 
     else
         # Convert to Float64 if possible 
-        sig2 = similar(sig, element_type=Float64)        
+        sig2 = Array{Float64, ndims(sig)}(undef, size(sig))       
         try
             for i = 1:length(sig)
                 sig2[i] = convert(Float64, sig[i])
             end
         catch
             # Cannot be plotted
-            @warn "Signal \"$name\" is ignored, because its element type = $elementType\nand therefore its values cannot be plotted."
+            @warn "Signal \"$name\" is ignored, because its element type = $sigElType\nand therefore its values cannot be plotted."
             return (nothing,nothing,nothing)
         end
         sig = sig2
@@ -591,7 +608,7 @@ function signalValuesForLinePlots(result, name::String)
         sig = -sig
     end
     
-    return (sig, legend, sigKind)
+    return (collect(sig), legend, sigKind)
     
     @label ERROR
     @warn "\"$name\" is ignored, because it is not defined or is not correct or has no values."

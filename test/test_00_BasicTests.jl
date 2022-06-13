@@ -2,7 +2,7 @@ module test_00_BasicTests
 
 using ModiaResult
 using ModiaResult.OrderedCollections
-using Unitful
+using ModiaResult.Unitful
 using Test
 
 # Test units ------------------------------------------------

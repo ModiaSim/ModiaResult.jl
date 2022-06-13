@@ -23,6 +23,7 @@ ModiaResult.signalValues(  result::AbstractDict{T1,T2}, name::String; unitless=f
 function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::SignalInfo where {T1<:AbstractString,T2}
     sig     = result[name]
     sigDims = size(sig)
+    sigInfo = ""
 
     if isOneValueSignal(sig)
         kind = ModiaResult.Constant
@@ -36,6 +37,9 @@ function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::Sign
             elementType = typeof(value)
         end
     else
+        if !( BaseType(eltype(sig)) <: Real )
+            error("\nSignal \"$name\" has no elements of type Real but has elements of type\n", eltype(sig))
+        end
         sigUnit     = unitAsParseableString(sig)
         elementType = eltype(ustrip.(sig))
         value       = missing
@@ -47,7 +51,7 @@ function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::Sign
         end        
     end          
 
-    SignalInfo(kind, elementType, sigDims, sigUnit, value, "", false)
+    SignalInfo(kind, elementType, sigDims, sigUnit, sigInfo, value, "", false)
 end
 
 # Overloaded methods for OrderedDict{String,T}   # Rest is the same as for AbstractDict

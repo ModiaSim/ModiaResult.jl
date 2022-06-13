@@ -54,20 +54,20 @@ If `ysigName` is not valid, or no signal values are available, the function retu
 `(nothing, nothing, nothing, nothing, nothing)`, and prints a warning message.
 """
 function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
-    (ySig, ysigLegend, ysigKind) = signalValuesForLinePlots(result, ysigName)
+    (ysig, ysigLegend, ysigKind) = signalValuesForLinePlots(result, ysigName)
     if isnothing(ysig)
         @goto ERROR
     end
     
     xsigName2 = isnothing(xsigName) ? timeSignalName(result) : xsigName
-    (xSig, xsigLegend, xsigKind) = signalValuesForLinePlots(result, xsigName)
+    (xsig, xsigLegend, xsigKind) = signalValuesForLinePlots(result, xsigName2)
     if isnothing(xsig)
         @goto ERROR
     end    
 
     # Check x-axis signal
     xsigValue = first(xsig)
-    if ndims(xSig) != 1
+    if ndims(xsig) != 1
         @warn "\"$xsigName\" does not characterize a scalar variable as needed for the x-axis."
         @goto ERROR
     elseif !(typeof(xsigValue) <: Real                                   || 
@@ -78,7 +78,10 @@ function getPlotSignal(result, ysigName::AbstractString; xsigName=nothing)
         @goto ERROR        
     end
 
-    return (xsig2, xsigLegend, ysig2, ysigLegend, ysigKind)
+    if ysigKind == ModiaResult.Constant
+        ysigKind = ModiaResult.Continuous
+    end
+    return (xsig, xsigLegend[1], ysig, ysigLegend, ysigKind)
 
     @label ERROR
     return (nothing, nothing, nothing, nothing, nothing)

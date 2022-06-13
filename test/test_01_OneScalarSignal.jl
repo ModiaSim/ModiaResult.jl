@@ -2,7 +2,7 @@ module test_01_OneScalarSignal
 
 using ModiaResult
 using ModiaResult.OrderedCollections
-ModiaResult.@usingModiaPlot
+@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 
@@ -15,6 +15,6 @@ println("\n... test_01_OneScalarSignal.jl:\n")
 
 ModiaResult.showResultInfo(result)
 
-#plot(result, "phi", heading="sine(time)")
+plot(result, "phi", heading="sine(time)")
 
 end

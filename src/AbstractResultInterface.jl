@@ -37,27 +37,27 @@ Kind of variables:
 
 
 """
-    info = SignalInfo(result, name)
+    sigInfo = SignalInfo(result, name)
 
 Return information about signal `name` of `result`. 
 
-| Returned info:          | Description                                                                      |
-|:------------------------|:---------------------------------------------------------------------------------|
-| `info.kind`             | Kind of variable (see `@enum `[`VariableKind`](@ref))                            |
-| `info.elementType`      | Element type of signal (without unit)                                            |
-| `info.dims`             | Dimensions of signal                                                             |
-| `info.unit`             | Unit of signal as string which is parseable with `Unitful.uparse` or `""`        |
-| `info.value`            | Value, if info.kind = ModiaResult.Constant (otherwise `missing`)                 |
-| `info.aliasName`        | Alias name, if info.kind = ModiaResult.Eliminated (otherwise `""`)               |
-| `info.aliasNegate`      | = true, if alias values must be negated (if info.kind = ModiaResult.Eliminated)  |
-
-Note, `info.aliasName` and `info.aliasNegate` is only supported by [Modia.jl](https://github.com/ModiaSim/Modia.jl).
+| Returned info:        | Description                                                                      |
+|:----------------------|:---------------------------------------------------------------------------------|
+| `sigInfo.kind`        | Kind of variable (see `@enum `[`VariableKind`](@ref))                            |
+| `sigInfo.elementType` | Element type of signal without unit, i.e. `eltype(ustrip.(sig))`; e.g. `Float64` |
+| `sigInfo.dims`        | Dimensions of signal, e.g., `(100,2,3)`                                          |
+| `sigInfo.unit`        | Unit of signal parseable with `Unitful.uparse` or `""`; e.g. `"kg*m*s^2"`        |
+| `sigInfo.info`        | Short description text or `""`; e.g. `"Position vector"`                         |
+| `sigInfo.value`       | Value, if info.kind = ModiaResult.Constant (otherwise `missing`)                 |
+| `sigInfo.aliasName`   | Alias name, if info.kind = ModiaResult.Eliminated (otherwise `""`)               |
+| `sigInfo.aliasNegate` | = true, if alias values must be negated (if info.kind = ModiaResult.Eliminated)  |
 """
 struct SignalInfo
     kind::VariableKind
     elementType
     dims::Dims
     unit::String
+    info::String
     
     # If kind = Constant
     value::Union{Any,Missing}  # If kind is not Constant: value=missing

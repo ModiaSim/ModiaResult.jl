@@ -5,7 +5,7 @@ using ModiaResult.OrderedCollections
 using ModiaResult.Unitful
 using ModiaResult.MonteCarloMeasurements
 using ModiaResult.MonteCarloMeasurements.Distributions
-ModiaResult.@usingModiaPlot
+@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 uniform1(xmin,xmax) = MonteCarloMeasurements.Particles(      100,Distributions.Uniform(xmin,xmax))

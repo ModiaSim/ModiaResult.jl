@@ -3,16 +3,16 @@ module test_03_OneVectorSignalWithUnit
 using ModiaResult
 using ModiaResult.Unitful
 using ModiaResult.OrderedCollections
-ModiaResult.@usingModiaPlot
+@usingModiaPlot
 
 t = range(0.0, stop=10.0, length=100)
 
 result = OrderedDict{String,Any}()
 
 result["time"] = t*u"s"
-result["r"]    = [[0.4 * cos(t[i]), 
-                   0.5 * sin(t[i]), 
-                   0.3 * cos(t[i])] for i in eachindex(t)]*u"m"
+result["r"]    = hcat(0.4 * cos.(t), 
+                      0.5 * sin.(t), 
+                      0.3 * cos.(t))*u"m"
 
 println("\n... test_03_OneVectorSignalWithUnit.jl:")
 ModiaResult.showResultInfo(result)
