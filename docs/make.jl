@@ -11,6 +11,7 @@ makedocs(
 	 "Functions"          => "Functions.md",
 	 "Internal"  => [
        "internal/AbstractInterface.md",
+       "internal/AbstractPlotInterface.md",       
        "internal/UtilityFunctions.md"       
       ],
   ]

@@ -5,7 +5,7 @@ CurrentModule = ModiaResult
 ```
 
 This chapter documents the *abstract interface* for which an implementation has to be provided,
-in order that the [Functions](@ref) of the ModiaResult package can be sued.
+in order that the [Functions](@ref) of the ModiaResult package can be used.
 
 Functions that are marked as *required*, need to be defined for a new result data structure.
 Functions that are marked as *optional* have a default implementation, but can be defined for 

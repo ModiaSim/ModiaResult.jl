@@ -58,6 +58,10 @@ result2["inertia"]     = OneValueSignal(value3*u"kg*m^2", length(t2))
 result2["dummyStruct"] = OneValueSignal(structValue, length(t2))
 result2["fileName"]    = OneValueSignal("data.txt", length(t2))
 ModiaResult.showResultInfo(result2)
+@show typeof( signalValues(result2, "time"    , unitless=true) )
+@show typeof( signalValues(result2, "phi"     , unitless=true) )
+@show typeof( signalValues(result2, "r"       , unitless=true) )
+@show typeof( signalValues(result2, "inertia" , unitless=true) )
 
 println("\nDictionary with missing (Vectors with missing cannot be associated with units)")
 time1 = 0.0 : 0.1  : 2.0
@@ -86,5 +90,6 @@ result3 = Dict{String,Any}("time" => t3,
                            "sigC" => sigC
                            )             
 showResultInfo(result3)
+
 
 end

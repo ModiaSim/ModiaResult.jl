@@ -19,6 +19,7 @@ ModiaResult.timeSignalName(result::AbstractDict{T1,T2}) where {T1<:AbstractStrin
 ModiaResult.signalNames(   result::AbstractDict{T1,T2}) where {T1<:AbstractString,T2}               = collect(keys(result))
 ModiaResult.hasSignal(     result::AbstractDict{T1,T2}, name::String) where {T1<:AbstractString,T2} = haskey(result, name)
 ModiaResult.signalValues(  result::AbstractDict{T1,T2}, name::String; unitless=false) where {T1<:AbstractString,T2} = unitless ? ustrip.(result[name]) : result[name]
+
 function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::SignalInfo where {T1<:AbstractString,T2}
     sig     = result[name]
     sigDims = size(sig)

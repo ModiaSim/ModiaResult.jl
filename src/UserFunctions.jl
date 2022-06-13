@@ -163,12 +163,12 @@ Possible values for `plotPackage`:
 # Example
 
 ```julia
-import ModiaResult
-
-ModiaResult.usePlotPackage("GLMakie")
+using ModiaResult
+usePlotPackage("GLMakie")
 
 module MyTest
-    ModiaResult.@usingModiaPlot
+    using ModiaResult
+    @usingModiaPlot
 
     t = range(0.0, stop=10.0, length=100)
     result = Dict{String,Any}("time" => t, "phi" => sin.(t))

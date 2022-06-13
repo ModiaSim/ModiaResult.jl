@@ -8,30 +8,37 @@ Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines
 an abstract interface for **simulation results** with a potentially segmented 
 time axis (on different segments of the time axis, different variables might be defined).
 
-A simulation *result* consists of a set of result *signals*. A result *signal* is identified by its `name::AbstractString`.
-It provides an approximation of a piecewise continuous variable ``v = v(t)`` which is a (partial) function
-of the independent, monotonically increasing variable ``t``. Typically, the independent variable ``t`` is called *time*.
+A simulation *result* consists of a set of result *signals*. A result *signal* is identified by its `name::String`
+(e.g. `"robot.joint1.angle"`). It provides an approximation of a piecewise continuous variable ``v = v(t)`` which is a (partial) function
+of the independent, monotonically increasing variable ``t``. Typically, the independent variable ``t`` is called `"time"`.
 The approximation consists of the values of variable ``v`` at particular time instants, ``v_i = v(t_i)``
-together with the information how to interpolate between these time instants
-(currently, only linear interpolation in piecewise-continuous functions is supported).
-A variable value ``v_i(t_i)`` is typically a sub-type of *Number* or of *AbstractArray* with an element type of *Number*.
+together with the information how to interpolate between these time instants. If a variable is *not defined*
+in some phase, it has a value of `missing` at the corresponding time instants.
+
+A value ``v_{ji}(t_i)`` of a variable ``v_j`` at time instant ``t_i`` is represented as `vj[i]` and is 
+typically a sub-type of *Real* or of *AbstractArray* with an element type of *Real*
+(e.g. a (2,3) array variable ``v_a`` at time instant ``t_i`` is represented as `va[i,1:2,1:3]`).
+A simulation result can also hold constants (parameters), that have the same value at all time instants. 
+Constants are compactly stored as  [`OneValueSignal`](@ref) and can be of any Julia type (e.g. `v = "data.txt"`).
+If a variable is *not defined* in some phase, it has a value of `missing` at the corresponding time instants. 
 Optionally, a unit (via [`Unitful.jl`](https://github.com/PainterQubits/Unitful.jl)) can be associated with a 
 variable ``v`` (so the same unit for all elements, if the variable is an array).
 
-The ModiaResult package provides an abstract interface to **operate** on such simulation results, most import
-to produce **line plots** in a **convenient way** (see example below). One advantage of this approach is
-that the used plot packages are only defined in ModiaResult, and not in the packages that use ModiaResult.
+The ModiaResult package provides an abstract interface to *operate* on such simulation results, for example, 
+- to provide the simulation result in a form to allow *signal calculations* (e.g. ``v_{diff} = v_2 - v_1``),
+- to provide a *table view* of the signals via [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), or
+- to produce *line plots* in *multiple diagrams* within *multiple windows/figurs* in a *convenient way* (see example below).
 
-*Concrete implementations* of the ModiaResult abstract interface are provided for:
+*Concrete implementations* of the ModiaResult [Abstract Interface](@ref) are provided for:
 
 - [Modia.jl](https://github.com/ModiaSim/Modia.jl) (a modeling and simulation environment)
 - [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) (tabular data; first column is independent variable)
 - [Tables.jl](https://github.com/JuliaData/Tables.jl) (abstract interface for tabular data, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables; first column is independent variable),
 - Dictionaries with String keys (if OrderedDict, independent variable is first variable, otherwise independent variable is "time").
 
-*Concrete implementations* of the `ModiaResult.plot` abstract interface are provided for the following plot packages:
+*Concrete implementations* of the ModiaResult [Abstract Plot Interface](@ref) are provided for:
 
-- [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with Matplotlib from Python), 
+- [PyPlot](https://github.com/JuliaPy/PyPlot.jl) (plots with [Matplotlib](https://matplotlib.org/stable/) from Python), 
 - [GLMakie](https://github.com/JuliaPlots/GLMakie.jl) (interactive plots in an OpenGL window),
 - [WGLMakie](https://github.com/JuliaPlots/WGLMakie.jl) (interactive plots in a browser window),
 - [CairoMakie](https://github.com/JuliaPlots/CairoMakie.jl) (static plots on file with publication quality).
@@ -64,12 +71,6 @@ plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
 generate the following plot:
 
 ![SegmentedSignalsPlot](../resources/images/segmented-signals-plot.png)
-
-
-## Abstract Result Interface
-
-For every result data structure a few access functions have to be defined
-(for details see [Abstract Interface](@ref)).
 
 
 ## Installation

@@ -1,9 +1,7 @@
 # License for this file: MIT (expat)
-# Copyright 2020-2021, DLR Institute of System Dynamics and Control
+# Copyright 2020-2022, DLR Institute of System Dynamics and Control
 #
 # This file is part of module ModiaResult (is included by the ModiaPlot_xxxMakie packages).
-
-
 
 
 """
@@ -179,7 +177,7 @@ Save figure on file. The file extension defines the image format
 | GLMakie      | png, jpg, bmp                       |
 | WGLMakie     | png                                 |
 | CairoMakie   | png, pdf, svg, eps                  |
-| PyPlot       | depends on [backend](https://matplotlib.org/stable/tutorials/introductory/usage.html) (png, pdf, jpg, tiff, svg, ps, eps) |
+| PyPlot       | depends on [backend](https://matplotlib.org/stable/users/explain/backends.html) (usually: png, pdf, jpg, tiff, svg, ps, eps) |
 | NoPlot       | Call is ignored                     |
 
 
@@ -213,4 +211,12 @@ function saveFigure end
 Close `figure`.
 """
 function closeFigure end
-   
+
+
+"""
+    closeAllFigures()
+
+Close all figures.
+"""
+function closeAllFigures end
+

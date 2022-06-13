@@ -3,7 +3,7 @@
 
 module SilentNoPlot
 
-include("plot.jl")
+include("AbstractPlotInterface.jl")
 
 plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true, xAxis="time", 
      figure::Int=1, prefix::AbstractString="", reuse::Bool=false, maxLegend::Integer=10, 
@@ -11,12 +11,6 @@ plot(result, names::AbstractMatrix; heading::AbstractString="", grid::Bool=true,
 showFigure(figure::Int)  = nothing
 closeFigure(figure::Int) = nothing
 saveFigure(figure::Int, fileName::AbstractString) = nothing
-
-"""
-    closeAllFigures()
-
-Close all figures.
-"""
 closeAllFigures() = nothing
 
 end
