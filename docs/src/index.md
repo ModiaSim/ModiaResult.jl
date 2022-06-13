@@ -27,7 +27,7 @@ variable ``v`` (so the same unit for all elements, if the variable is an array).
 The ModiaResult package provides an abstract interface to *operate* on such simulation results, for example, 
 - to provide the simulation result in a form to allow *signal calculations* (e.g. ``v_{diff} = v_2 - v_1``),
 - to provide a *table view* of the signals via [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), or
-- to produce *line plots* in *multiple diagrams* within *multiple windows/figurs* in a *convenient way* (see example below).
+- to produce *line plots* in *multiple diagrams* within *multiple windows/figures* in a *convenient way* (see example below).
 
 *Concrete implementations* of the ModiaResult [Abstract Interface](@ref) are provided for:
 
