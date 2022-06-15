@@ -150,7 +150,53 @@ Return `true`, if `signal::OneValueSignal`, otherwise return false.
 """
 isOneValueSignal(s) = false
 isOneValueSignal(s::OneValueSignal) = true
+   
+
+"""
+    signal = ArraySignal(array; kind=ModiaResult.Continuous, unit="", info="")
+
+Return an ArraySignal that consists of `array` and additional attributes.   
+
+# Example
+
+```julia
+s1 = ArraySignal([1,2,3], unit="N*m", info="Torque")
+s2 = ArraySignal([1.0, 2.0, 3.0], kind=ModiaResult.Clocked, unit="rad", info="Motor angle")
+```
+"""
+struct ArraySignal{T,N} <: AbstractArray{T,N}
+    array::Array{T,N}
+    kind::ModiaResult.VariableKind
+    unit::String
+    info::String
+    function ArraySignal{T,N}(array; kind=ModiaResult.Continuous, unit="", info="") where {T,N}
+        if !( BaseType(eltype(array)) <: Real )
+            error("\nArraySignal(array, ..) has eltype(array) = ", eltype(array), ", which is not a subtype of Real!")
+        end
+        array2 = ustrip.(array)
+        new(array2,kind,unit,info)
+    end
+end
+ArraySignal(array; kwargs...) = ArraySignal{eltype(array),ndims(array)}(array; kwargs...)
+
+Base.size(s::ArraySignal)               = Base.size(s.array)
+Base.getindex(s::ArraySignal, i::Int)   = Base.getindex(s.array, i)
+Base.getindex(s::ArraySignal, I...)     = Base.getindex(s.array, I...)
+Base.length(  s::ArraySignal)           = Base.length(s.array)
+Base.IndexStyle(T::Type{<:ArraySignal}) = Base.IndexStyle(T)
+#Base.getindex(s::ArraySignal{T,N}, I::Vararg{Int, N}) where {T,N} = Base.getindex(s.array, I)
+
+
+
+"""
+    isArraySignal(signal)::Bool
     
+Return `true`, if `signal::ArraySignal`, otherwise return false.
+"""
+isArraySignal(s) = false
+isArraySignal(s::ArraySignal) = true
+
+   
 
 """
     usePlotPackage(plotPackage::String)
@@ -301,6 +347,7 @@ function resultInfo(result; sorted=true)
     dims2   = String[]
     eltype2 = String[]
     kind2   = String[]
+    info2   = String[]
     
     timeSigName = timeSignalName(result)
     tSig        = signalValues(result, timeSigName, unitless=true)
@@ -319,6 +366,7 @@ function resultInfo(result; sorted=true)
             pushfirst!(dims2, string(sigInfo.dims))
             pushfirst!(eltype2, string(sigInfo.elementType))
             pushfirst!(kind2, "Independent (= [$(tSig[1]) .. $(tSig[end])])")
+            pushfirst!(info2, string(sigInfo.info))            
         else
             elementType         = sigInfo.elementType
             elementTypeAsString = string(elementType)
@@ -344,14 +392,15 @@ function resultInfo(result; sorted=true)
             elseif kind == Eliminated
                 push!(kind2, "Eliminated (= " * (sigInfo.aliasNegate ? "-" : "") * sigInfo.aliasName * ")")               
             elseif kind == Clocked
-                push!(kind2, "Clocked signal")
+                push!(kind2, "Clocked")
             else
-                push!(kind2, "")
+                push!(kind2, "Continuous")
             end
+            pushfirst!(info2, string(sigInfo.info))             
         end
     end
 
-    resultInfoTable = DataFrames.DataFrame(name=name2, unit=unit2, size=dims2, eltype=eltype2, kind=kind2)
+    resultInfoTable = DataFrames.DataFrame(name=name2, unit=unit2, size=dims2, eltype=eltype2, kind=kind2, info=info2)
 
     return resultInfoTable
 end
@@ -381,7 +430,7 @@ resultInfo(testResult)
 function showResultInfo(result)::Nothing
     resultInfoTable = resultInfo(result)
 
-    show(stdout, resultInfoTable, summary=false, rowlabel=Symbol("#"), allcols=true, eltypes=false, truncate=50)
+    show(stdout, resultInfoTable, show_row_number=false, summary=false, allcols=true, eltypes=false, truncate=50) # rowlabel=Symbol("#")
     println(stdout)
 
     return nothing

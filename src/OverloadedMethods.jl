@@ -36,6 +36,12 @@ function ModiaResult.SignalInfo(result::AbstractDict{T1,T2}, name::String)::Sign
             value   = sig.value
             elementType = typeof(value)
         end
+    elseif isArraySignal(sig)
+        sigInfo     = sig.info
+        sigUnit     = sig.unit
+        kind        = sig.kind
+        elementType = eltype(sig.array)
+        value       = missing
     else
         if !( BaseType(eltype(sig)) <: Real )
             error("\nSignal \"$name\" has no elements of type Real but has elements of type\n", eltype(sig))

@@ -4,37 +4,59 @@
 CurrentModule = ModiaResult
 ```
 
-Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines 
-an abstract interface for **simulation results** with a potentially segmented 
-time axis (on different segments of the time axis, different variables might be defined).
+Package [ModiaResult](https://github.com/ModiaSim/ModiaResult.jl) defines
+an [Abstract Result Interface](@ref) and an [Abstract Line Plot Interface](@ref)  
+together with concrete implementations of these interfaces. 
+Furthermore, useful functionality is provided on top of these interfaces, 
+for example line plots (see [Functions](@ref)).
 
-A simulation *result* consists of a set of result *signals*. A result *signal* is identified by its `name::String`
-(e.g. `"robot.joint1.angle"`). It provides an approximation of a piecewise continuous variable ``v = v(t)`` which is a (partial) function
+A *result* consists of a set of *signals*. A *signal* is identified by its `name::String`
+(e.g. `"robot.joint1.angle"`) and is a representation of the values of a variable ``v_j`` as a (partial) function ``v_j(t)``
 of the independent, monotonically increasing variable ``t``. Typically, the independent variable ``t`` is called `"time"`.
-The approximation consists of the values of variable ``v`` at particular time instants, ``v_i = v(t_i)``
-together with the information how to interpolate between these time instants. If a variable is *not defined*
-in some phase, it has a value of `missing` at the corresponding time instants.
 
-A value ``v_{ji}(t_i)`` of a variable ``v_j`` at time instant ``t_i`` is represented as `vj[i]` and is 
-typically a sub-type of *Real* or of *AbstractArray* with an element type of *Real*
-(e.g. a (2,3) array variable ``v_a`` at time instant ``t_i`` is represented as `va[i,1:2,1:3]`).
-A simulation result can also hold constants (parameters), that have the same value at all time instants. 
-Constants are compactly stored as  [`OneValueSignal`](@ref) and can be of any Julia type (e.g. `v = "data.txt"`).
-If a variable is *not defined* in some phase, it has a value of `missing` at the corresponding time instants. 
-Optionally, a unit (via [`Unitful.jl`](https://github.com/PainterQubits/Unitful.jl)) can be associated with a 
-variable ``v`` (so the same unit for all elements, if the variable is an array).
+- The (only) *independent variable* ``t`` of a result is represented as a set of values ``t_i`` that are stored in a vector `t::Vector{<:Real}`.
+  
+- A *dependent variable* ``v`` of a result is represented as a set of values ``v(t_i) = v_i`` and is stored as array `v::AbstractArray{T,N}`.
+  `v[i,j,k,...]` is element `j,k,...` of variable ``v`` at ``t_i``.\
+  If an element is *not defined*, it has a value of **`missing`** at the corresponding time instants. 
+  
+Example of a result data structure, together with the *attributes* that can be associated with a signal:
 
-The ModiaResult package provides an abstract interface to *operate* on such simulation results, for example, 
-- to provide the simulation result in a form to allow *signal calculations* (e.g. ``v_{diff} = v_2 - v_1``),
-- to provide a *table view* of the signals via [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl), or
-- to produce *line plots* in *multiple diagrams* within *multiple windows/figures* in a *convenient way* (see example below).
+```julia
+name        unit      size      eltype                  kind                          info
+────────────────────────────────────────────────────────────────────────────────────────────────
+time        s         (208,)    Float64                 Independent (= [0.0 .. 7.0])
+load.f      N         (208, 3)  Vector{Float64}         Constant (= [1.0, 2.0, 3.0])
+load.phi    rad       (208,)    Float64                                 
+load.r_abs  m         (208, 3)  Float64                
+load.w      rad*s^-1  (208,)    Union{Missing,Float64}                                    
+motor.J     kg*m^2    (208,)    Float64                 Constant (= 1.2)
+motor.b               (208,)    Bool                   
+motor.data            (208,)    MotorStruct             Constant
+motor.phi   rad       (208,)    Float64                 
+motor.w_m   rad/s     (208,)    Union{Missing,Float64}                                Clocked
+reference             (208,)    String                  Constant (= "reference.txt")
+```
+
+The *logical view* of a signal is always an *array*. Consequently, all meaningful array operations can be directly
+performed on signals, for example `diff = result["load.phi"] - result["motor.phi"]`. The following signal kinds are supported:
+- *Continuous*: Piecewise continuous signal `s::AbstractArray{<:Number,N}` that is linearly interpolated in ``t``.
+- *Clocked*: Signal `s::AbstractArray{<:Any,N}` that is not interpolated.
+- *Constant*: Signal `s::AbstractArray{<:Any,N}` that has the same value at all ``t`` (compactly stored).
+- *Eliminated*: Signal is an alias or negative alias of another signal.
+Attributes *unit*, *size*, *eltype* are part of the array type (*unit* via [Unitful.jl](https://github.com/PainterQubits/Unitful.jl)). 
+The other attributes are stored with special array types: 
+[`ContinuousSignal`](@ref), [`ClockedSignal`](@ref), [`ConstantSignal`](@ref), [`EliminatedSignal`](@ref).
 
 *Concrete implementations* of the ModiaResult [Abstract Result Interface](@ref) are provided for:
 
+- [`ResultTable`](@ref) (included in ModiaResult.jl).
 - [Modia.jl](https://github.com/ModiaSim/Modia.jl) (a modeling and simulation environment)
-- [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) (tabular data; first column is independent variable)
-- [Tables.jl](https://github.com/JuliaData/Tables.jl) (abstract interface for tabular data, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables; first column is independent variable),
-- Dictionaries with String keys (if OrderedDict, independent variable is first variable, otherwise independent variable is "time").
+- [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl)
+  (tabular data; first column is independent variable; *only vector signals*))
+- [Tables.jl](https://github.com/JuliaData/Tables.jl)
+  (abstract tables, e.g. [CSV](https://github.com/JuliaData/CSV.jl) tables;
+  first column is independent variable; *only vector signals*).
 
 *Concrete implementations* of the ModiaResult [Abstract Line Plot Interface](@ref) are provided for:
 
@@ -43,7 +65,7 @@ The ModiaResult package provides an abstract interface to *operate* on such simu
 - [WGLMakie](https://github.com/JuliaPlots/WGLMakie.jl) (interactive plots in a browser window),
 - [CairoMakie](https://github.com/JuliaPlots/CairoMakie.jl) (static plots on file with publication quality).
 
-Furthermore, there are two dummy modules included in ModiaResult, that are useful when performing tests with runtests.jl, 
+Furthermore, there are two dummy implementations included in ModiaResult, that are useful when performing tests with runtests.jl, 
 in order that no plot package needs to be loaded during the tests:
 
 - NoPlot (= all plot calls are ignored and info messages are instead printed), or
@@ -52,23 +74,16 @@ in order that no plot package needs to be loaded during the tests:
 
 ## Example
 
-Assume that the result data structure is available, then the following commands
-
-
 ```julia
-import ModiaResult
+# Define Plot Package in startup.jl. Here: ENV["MODIA_PLOT"] = "PyPlot"
+# Or change definition in Julia session. Here: usePlotPackage("PyPlot")
 
-# Define plotting software globally
-ModiaResult.activate("PyPlot") # or ENV["MODIA_PLOT"] = "PyPlot"
-
-# Execute "using ModiaPlot_<globally defined plot package>"
-ModiaResult.@usingModiaPlot   # = "using ModiaPlot_PyPlot"
-
-# Generate line plots                     
-plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])
+include("$(ModiaResult.path)/examples/result3.jl")   # construct a ResultTable result
+@usingModiaPlot                                      # activate plot package
+plot(result, [("sigA", "sigB", "sigC"), "r[2:3]"])   # generate line plots
 ```
 
-generate the following plot:
+Generates the following plot:
 
 ![SegmentedSignalsPlot](../resources/images/segmented-signals-plot.png)
 

@@ -17,7 +17,7 @@ a new result data structure.
 | [`signalNames`](@ref)     | Return all signal names (*required*).                         |
 | [`SignalInfo`](@ref)      | Return info about a signal (*required*).                      |
 | [`signalValues`](@ref)    | Return values of one signal as an array (*required*).         |
-| [`lastSignalValue`](@ref) | Return last (non-missing) value of one signal (*optional*)    |
+| [`lastSignalValue`](@ref) | Return last value of one signal (*optional*)                  |
 | [`hasSignal`](@ref)       | Return true if a signal name is known (*optional*).           |
 | [`defaultHeading`](@ref)  | Return default heading of result data structure (*optional*). |
 

@@ -5,7 +5,7 @@ const path = dirname(dirname(@__FILE__))
 export quantity
 export showResultInfo, resultInfo, timeSignalName, signalNames, SignalInfo
 export lastSignalValue, signalValues, signalValuesForLinePlots, defaultHeading
-export OneValueSignal, BaseType, unitAsParseableString
+export OneValueSignal, ArraySignal, BaseType, unitAsParseableString
 export @usingModiaPlot, usePlotPackage, usePreviousPlotPackage, currentPlotPackage
 export plot, saveFigure, closeFigure, closeAllFigures, showFigure
 
